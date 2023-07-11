@@ -4,15 +4,19 @@ author: Kevin
 output: html_document
 github_repo: https://github.com/ksjerezb/MAFFRA_II_Manuscript_2_16S
 ---
+```{css echo=FALSE}
+body{
+  background-color: black;
+  color:white;
+}
+```
 ```{r include=FALSE}
 knitr::opts_chunk$set(fig.retina=2)
 ```
 
-```{r ipsum_setup, message=FALSE, warning=FALSE, cache=FALSE, echo=FALSE}
-library(hrbrthemes)
-library(tidyverse)
+```{r  message=FALSE, warning=FALSE, cache=FALSE, echo=FALSE}
 
-update_geom_font_defaults(font_rc)
+library(tidyverse)
 ```
 Captain John Sheridan: You know, I just had a thought. You've been back and forth to your world so many times since you got here. How do I know you're the same Vorlon? Inside that encounter suit you could be anyone. Kosh Naranek: I have *always* been here. Captain John Sheridan: Oh, yeah? You said that about me too. Kosh Naranek: Yes. [starts to walk away] Captain John Sheridan: I really *hate* it when you do that. Kosh Naranek: [turns around] Good! Delenn: I am Grey. I stand between the candle and the star. We are Grey. We stand between the darkness and the light. 
 
@@ -27,9 +31,7 @@ G'Kar: It is said that the future is always born in pain. The history of war is 
 ```{r, fig.show='hold'}
 ggplot(mtcars, aes(wt, mpg)) +
   geom_point() +
-  labs(title="mtcars again, it seems") +
-  theme_ipsum_rc(grid="XY")
-
+  labs(title="mtcars again, it seems") 
 ```
 
 
@@ -47,9 +49,3 @@ Delenn: We are star stuff. We are the universe made manifest trying to figure it
 Captain John Sheridan: If more of our so-called leaders would walk the same streets as the people who voted them in, live in the same buildings, eat the same food instead of hiding behind glass and steel and bodyguards, maybe we'd get better leadership and a little more concern for the future. 
 
 Captain John Sheridan: If more of our so-called leaders would walk the same streets as the people who voted them in, live in the same buildings, eat the same food instead of hiding behind glass and steel and bodyguards, maybe we'd get better leadership and a little more concern for the future. Kosh Naranek: Understanding is a three-edged sword. Alfred Bester: Much as it might offend their sense of perspective, not everything is about Babylon 5.
-
-
-```{r bib, include=FALSE}
-# KEEP THIS AT THE END OF THE DOCUMENT TO GENERATE A LOCAL bib FILE FOR PKGS USED
-knitr::write_bib(sub("^package:", "", grep("package", search(), value=TRUE)), file='skeleton.bib')
-```
