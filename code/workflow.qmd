@@ -9,17 +9,151 @@ format:
 editor: visual
 ---
 
-```{r}
+```{r libraries }
 #| echo: false
 library(tidyverse)
 
 ```
 
-## Import data
+# Import data
 
-```{r}
+```{r Data & Filters}
+#Load abundances
+abundance <- read.table("seqtab_tnochim.rax.txt", header=TRUE,  sep="\t", check.names=FALSE, row.names=1)
+taxadata <-  read.table("seqtab_taxa.rax.txt", header=TRUE,  sep="\t")
+rownames(taxadata) <- taxadata$X
+taxadata$X <- NULL
+taxadata <- as.matrix(taxadata)
+taxtree <- read_tree("alignment.fasta.tree")
+
+#sample information
+
+saminfo <- data.frame(read.table(file="kevin_mapping_info_2.txt", row.names=1, header=TRUE, sep="\t"))
+saminfo <- saminfo[(row.names(saminfo) %in% colnames(abundance) ), ]
+saminfo$cross <- paste( saminfo$Day , saminfo$Feed,  saminfo$Coli, sep='_')
+saminfo$cross<-as.factor(saminfo$cross)
+saminfo$pen<-as.factor(saminfo$pen)
+saminfo$sow<-as.factor(saminfo$sow)
+saminfo$cross2 <- paste( saminfo$Feed,  saminfo$Coli, sep='_')
+saminfo$cross2 <-as.factor(saminfo$cross2)
+
+saminfo$treat<- factor(saminfo$treat,levels =unique(saminfo$treat)[c(1:5)])
+
+
+mapping <- import_qiime_sample_data(mapfilename = 'kevin_mapping_info_2.txt')
+
+mapping <- mapping[(row.names(mapping) %in% colnames(abundance) ), ]
+
+mapping$cross <- paste( mapping$Day , mapping$Feed,  mapping$Coli, sep='_')
+mapping$cross<-as.factor(mapping$cross)
+
+mapping$cross2 <- paste( mapping$Feed,  mapping$Coli, sep='_')
+mapping$cross2<-as.factor(mapping$cross2)
+
+order <- rownames(mapping)
+
+###Merge
+
+phylo <- phyloseq(otu_table(abundance, taxa_are_rows=TRUE), sample_data(mapping), tax_table(taxadata), taxtree)
+
+#Reorder the otu table based on the reporderd mapping table created above.
+otu_table(phylo) <- otu_table(phylo)[,order ]
+
+phylonames <- as.data.frame(taxa_names(phylo))
+phylonames$newnames <- paste0("Seq", seq(ntaxa(phylo)))
+taxa_names(phylo) <- paste0("Seq", seq(ntaxa(phylo)))
+write.table(phylonames , file="phylo_renamed_sequences.txt", sep='\t', quote=FALSE, col.names=NA)
+otu_table(phylo) <- otu_table(phylo)[,order ]
+
+# del <- as.data.frame(otu_table(phylo))
+# write.table(del , file="reordered_samples.txt", sep='\t', quote=FALSE, col.names=NA)
+
+## Add Blast
+
+species <- data.frame(read.table(file="renamed_phylosequences.clean.fasta.blast.silva.tab.cols_final", row.names=1, header=TRUE, sep="\t"))
+#species$Species[species$Species == "multiseptatus"] <- "species"
+#species$Species[species$Species == "lapidis"] <- "species"
+
+species$myclass <- paste(species$Genus,"species", sep = "_")
+species$myclass2 <- paste(species$Genus,species$Species, sep = "_")
+
+##maybe replace modestobacter species with more generic
+species$id <- as.numeric(species$id)
+speciesb <- species
+speciesb$Species <- speciesb$myclass2
+
+species1 <- speciesb %>% mutate(Species=replace(Species, id < 99, myclass[id < 99]))#
+
+taxa <- as.data.frame(tax_table(phylo))
+taxa$otu <- rownames(taxa)
+species1$otu <- rownames(species1)
+
+test <- left_join(taxa, species1, by= "otu")
+
+#write.table(test , file="reordered_samples.fulltaxa.txt", sep='\t', quote=FALSE, col.names=NA)
+
+test1 <- test %>% dplyr::select(otu,Kingdom,Phylum,Class,Order,Family,Genus.y, Species.y)
+
+test1 <- rename(test1, Genus = Genus.y)
+test1 <- rename(test1, Species = Species.y)
+
+tst2 <- test1 %>%
+  mutate(Genus = ifelse(is.na(Family), "NA", Genus))
+
+tst2 <- tst2 %>%
+  mutate(Species = ifelse(is.na(Family), "NA", Species))
+rownames(tst2) <- tst2$otu
+tst2 <- dplyr::select(tst2, -otu)
+
+tax_table(phylo) <- as.matrix(tst2)
+
+
+
+#filter
+sp <- subset(species,species$len > 398)
+myTaxa <- rownames(sp)
+phylo = prune_taxa(myTaxa,phylo)
+
+
+
+###lets filter out anything that is non bacterial at this stage
+#phylo <- tissue
+phylo <- subset_taxa(phylo, Kingdom == "Bacteria")
+phylo <- subset_taxa(phylo, !Phylum == "Cyanobacteria")
+phylo1 <- subset_taxa(phylo, !is.na(Order) & !Phylum %in% c("", "NA"))
+
+
+## Seperate out relevant datasets
+
+Samples_toRemove <- c("faecal")
+faecal <- subset_samples(phylo, Source %in% Samples_toRemove)
+saveRDS(faecal, "faecal.rds")
+
+
+Samples_toRemove <- c("faecal")
+tissue<- subset_samples(phylo, !(Source %in% Samples_toRemove))
+
+Samples_toRemove <- c("Control")
+
+tissue<- subset_samples(tissue, !(Source %in% Samples_toRemove))
+saveRDS(tissue, "tissue.rds")
+#####
+
+Samples_toRemove <- c("Control")
+controls <- subset_samples(phylo, Source %in% Samples_toRemove)
+saveRDS(controls, "cortrols.rds")
+
+Samples_toRemove <- c("Control")
+sams <- subset_samples(phylo, !(Source %in% Samples_toRemove))
+saveRDS(sams, "sams.rds")
+phylo_original <-  phylo
+phylo_original
 
 ```
+
+
+
+
 
 
 ## Running Code
@@ -32,7 +166,7 @@ When you click the **Render** button a document will be generated that includes 
 
 You can add options to executable code like this
 
-```{}
+```         
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
