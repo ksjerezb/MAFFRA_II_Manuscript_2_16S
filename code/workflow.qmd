@@ -1,5 +1,5 @@
 ---
-title: "Microbiota data analysis M-II"
+title: "Import data"
 author: Kevin Jerez-Bogota
 toc: true
 format:
@@ -11,24 +11,28 @@ editor: visual
 
 ```{r libraries }
 #| echo: false
+#| 
 library(tidyverse)
+library(phyloseq)
+library("metagMisc")
 
+set.seed(072023)
 ```
 
 # Import data
 
-```{r Data & Filters}
+```{r Data import }
 #Load abundances
-abundance <- read.table("seqtab_tnochim.rax.txt", header=TRUE,  sep="\t", check.names=FALSE, row.names=1)
-taxadata <-  read.table("seqtab_taxa.rax.txt", header=TRUE,  sep="\t")
+abundance <- read.table("../data/pre/seqtab_tnochim.rax.txt", header=TRUE,  sep="\t", check.names=FALSE, row.names=1)
+#load taxa, assign column name X to rownames (sequences) and as.matrix
+taxadata <-  read.table("../data/pre/seqtab_taxa.rax.txt", header=TRUE,  sep="\t")
 rownames(taxadata) <- taxadata$X
 taxadata$X <- NULL
 taxadata <- as.matrix(taxadata)
-taxtree <- read_tree("alignment.fasta.tree")
-
-#sample information
-
-saminfo <- data.frame(read.table(file="kevin_mapping_info_2.txt", row.names=1, header=TRUE, sep="\t"))
+#load tree
+taxtree <- read_tree("../data/pre/alignment.fasta.tree")
+#sample information (metadata)
+saminfo <- data.frame(read.table(file="../data/pre/kevin_mapping_info_2.txt", row.names=1, header=TRUE, sep="\t"))
 saminfo <- saminfo[(row.names(saminfo) %in% colnames(abundance) ), ]
 saminfo$cross <- paste( saminfo$Day , saminfo$Feed,  saminfo$Coli, sep='_')
 saminfo$cross<-as.factor(saminfo$cross)
@@ -36,137 +40,141 @@ saminfo$pen<-as.factor(saminfo$pen)
 saminfo$sow<-as.factor(saminfo$sow)
 saminfo$cross2 <- paste( saminfo$Feed,  saminfo$Coli, sep='_')
 saminfo$cross2 <-as.factor(saminfo$cross2)
-
 saminfo$treat<- factor(saminfo$treat,levels =unique(saminfo$treat)[c(1:5)])
-
-
-mapping <- import_qiime_sample_data(mapfilename = 'kevin_mapping_info_2.txt')
-
+#sample information (metadata) as mapping file
+mapping <- import_qiime_sample_data(mapfilename = '../data/pre/kevin_mapping_info_2.txt')
 mapping <- mapping[(row.names(mapping) %in% colnames(abundance) ), ]
-
 mapping$cross <- paste( mapping$Day , mapping$Feed,  mapping$Coli, sep='_')
 mapping$cross<-as.factor(mapping$cross)
-
 mapping$cross2 <- paste( mapping$Feed,  mapping$Coli, sep='_')
 mapping$cross2<-as.factor(mapping$cross2)
-
 order <- rownames(mapping)
 
+```
+
+```{r merging}
 ###Merge
-
 phylo <- phyloseq(otu_table(abundance, taxa_are_rows=TRUE), sample_data(mapping), tax_table(taxadata), taxtree)
-
 #Reorder the otu table based on the reporderd mapping table created above.
 otu_table(phylo) <- otu_table(phylo)[,order ]
-
 phylonames <- as.data.frame(taxa_names(phylo))
 phylonames$newnames <- paste0("Seq", seq(ntaxa(phylo)))
 taxa_names(phylo) <- paste0("Seq", seq(ntaxa(phylo)))
-write.table(phylonames , file="phylo_renamed_sequences.txt", sep='\t', quote=FALSE, col.names=NA)
 otu_table(phylo) <- otu_table(phylo)[,order ]
 
-# del <- as.data.frame(otu_table(phylo))
-# write.table(del , file="reordered_samples.txt", sep='\t', quote=FALSE, col.names=NA)
-
 ## Add Blast
-
-species <- data.frame(read.table(file="renamed_phylosequences.clean.fasta.blast.silva.tab.cols_final", row.names=1, header=TRUE, sep="\t"))
-#species$Species[species$Species == "multiseptatus"] <- "species"
-#species$Species[species$Species == "lapidis"] <- "species"
-
+species <- data.frame(read.table(file="../data/pre/renamed_phylosequences.clean.fasta.blast.silva.tab.cols_final", row.names=1, header=TRUE, sep="\t"))
 species$myclass <- paste(species$Genus,"species", sep = "_")
 species$myclass2 <- paste(species$Genus,species$Species, sep = "_")
-
-##maybe replace modestobacter species with more generic
 species$id <- as.numeric(species$id)
 speciesb <- species
 speciesb$Species <- speciesb$myclass2
+species1 <- speciesb %>% mutate(Species=replace(Species, id < 99, myclass[id < 99]))
 
-species1 <- speciesb %>% mutate(Species=replace(Species, id < 99, myclass[id < 99]))#
-
+#taxa dataframe
 taxa <- as.data.frame(tax_table(phylo))
 taxa$otu <- rownames(taxa)
 species1$otu <- rownames(species1)
+test1 <- left_join(taxa, species1, by= "otu")%>%
+          dplyr::select(otu,Kingdom,Phylum,Class,Order,Family,Genus.y, Species.y)%>%
+          rename(Genus = Genus.y)%>%
+          rename(Species = Species.y)%>%
+          mutate(Genus = ifelse(is.na(Family), "NA", Genus))%>%
+          mutate(Species = ifelse(is.na(Family), "NA", Species))
+rownames(test1) <- test1$otu
+test1 <- dplyr::select(test1, -otu)
+tax_table(phylo) <- as.matrix(test1)
+```
 
-test <- left_join(taxa, species1, by= "otu")
-
-#write.table(test , file="reordered_samples.fulltaxa.txt", sep='\t', quote=FALSE, col.names=NA)
-
-test1 <- test %>% dplyr::select(otu,Kingdom,Phylum,Class,Order,Family,Genus.y, Species.y)
-
-test1 <- rename(test1, Genus = Genus.y)
-test1 <- rename(test1, Species = Species.y)
-
-tst2 <- test1 %>%
-  mutate(Genus = ifelse(is.na(Family), "NA", Genus))
-
-tst2 <- tst2 %>%
-  mutate(Species = ifelse(is.na(Family), "NA", Species))
-rownames(tst2) <- tst2$otu
-tst2 <- dplyr::select(tst2, -otu)
-
-tax_table(phylo) <- as.matrix(tst2)
-
-
-
-#filter
+```{r split_data}
+#filtering
 sp <- subset(species,species$len > 398)
 myTaxa <- rownames(sp)
 phylo = prune_taxa(myTaxa,phylo)
 
-
-
-###lets filter out anything that is non bacterial at this stage
-#phylo <- tissue
+#lets filter out anything that is non bacterial at this stage
 phylo <- subset_taxa(phylo, Kingdom == "Bacteria")
 phylo <- subset_taxa(phylo, !Phylum == "Cyanobacteria")
-phylo1 <- subset_taxa(phylo, !is.na(Order) & !Phylum %in% c("", "NA"))
-
 
 ## Seperate out relevant datasets
+phylo <- subset_samples(phylo, Day %in% c("21","30"))
 
-Samples_toRemove <- c("faecal")
-faecal <- subset_samples(phylo, Source %in% Samples_toRemove)
-saveRDS(faecal, "faecal.rds")
+```
 
+### Abundance filter and rarefaction
 
-Samples_toRemove <- c("faecal")
-tissue<- subset_samples(phylo, !(Source %in% Samples_toRemove))
+```{r filter_rarefaction }
+phylo = prune_taxa(taxa_sums(phylo) > 0, phylo) 
+# samsums <- as.data.frame(sample_sums(phylo))
+# taxsums <- as.data.frame(taxa_sums(phylo))
+# # digesta <- digesta
 
-Samples_toRemove <- c("Control")
+ps1 <- subset_taxa(phylo, !is.na(Phylum) & !Phylum %in% c("", "NA"))
 
-tissue<- subset_samples(tissue, !(Source %in% Samples_toRemove))
-saveRDS(tissue, "tissue.rds")
-#####
+#ps
+# #Create table, number of features for each phyla
+# table1 <- table(tax_table(ps)[, "Phylum"], exclude = NULL)
+# table1<-  as.data.frame(table1)
+#Create table, number of features for each sample
+# tablea <- colSums(otu_table(ps) != 0)
+# tablea <-  as.data.frame(tablea)
+# tablea_counts <- as.data.frame(sample_sums(faecal))
 
-Samples_toRemove <- c("Control")
-controls <- subset_samples(phylo, Source %in% Samples_toRemove)
-saveRDS(controls, "cortrols.rds")
+# # Compute prevalence of each feature, store as data.frame
+# prevdf = apply(X = otu_table(ps),
+#                MARGIN = ifelse(taxa_are_rows(ps), yes = 1, no = 2),
+#                FUN = function(x){sum(x > 0)})
+# # Add taxonomy and total read counts to this data.frame
+# prevdf = data.frame(Prevalence = prevdf,
+#                     TotalAbundance = taxa_sums(ps),
+#                     tax_table(ps))
+# 
+# # Subset to the remaining phyla
+# prevdf1 = subset(prevdf, Phylum %in% get_taxa_unique(ps, "Phylum"))
 
-Samples_toRemove <- c("Control")
-sams <- subset_samples(phylo, !(Source %in% Samples_toRemove))
-saveRDS(sams, "sams.rds")
-phylo_original <-  phylo
-phylo_original
+ps1 <- phyloseq_filter_prevalence(ps1,  abund.trh = 50, threshold_condition = "OR")  # 15639 taxa
+minTotRelAbun = 1e-5
+x = taxa_sums(ps1)
+keepTaxa = taxa_names(ps1)[which((x / sum(x)) > minTotRelAbun)]
+ps1 <- prune_taxa(keepTaxa, ps1)
+
+#### maybe delete
+# #Create table, number of features for each phyla
+# table2 <- table(tax_table(ps1)[, "Phylum"], exclude = NULL)
+# table2<-  as.data.frame(table2)
+# #Create table, number of features for each sample
+# tableb <- colSums(otu_table(ps1) != 0)
+# tableb <-  as.data.frame(tableb)
+# tableb_counts <- as.data.frame(sample_sums(ps1))
+
+# # Compute prevalence of each feature, store as data.frame
+# prevdf = apply(X = otu_table(ps1),
+#                MARGIN = ifelse(taxa_are_rows(ps1), yes = 1, no = 2),
+#                FUN = function(x){sum(x > 0)})
+# # Add taxonomy and total read counts to this data.frame
+# prevdf = data.frame(Prevalence = prevdf,
+#                     TotalAbundance = taxa_sums(ps1),
+#                     tax_table(ps1))
+# #write.table(prevdf , file="offspring_only_common_results/Filtered_5prev+50count_prevalence_by_OTU.counts", sep='\t', quote=FALSE)
+# # Subset to the remaining phyla
+# prevdf1 = subset(prevdf, Phylum %in% get_taxa_unique(ps1, "Phylum"))
+# mdt = fast_melt(ps1)
+# prevdt = mdt[, list(Prevalence = sum(count > 0), 
+#                     TotalCounts = sum(count)),
+#              by = TaxaID]
+# occurences<-table(unlist(prevdt$Prevalence)) 
+# samsumsclean <- as.data.frame(sample_sums(ps1))
+# taxsumsclean <- as.data.frame(taxa_sums(ps1))
+# 
+# glomp <- tax_glom(ps1, taxrank = 'Phylum')
+# glomg <- tax_glom(ps1, taxrank = 'Genus')
+# gloms <- tax_glom(ps1, taxrank = 'Species')
+
+ps.rarefied = rarefy_even_depth(ps1, rngseed=1, sample.size=0.9*min(sample_sums(ps1)), replace=F)
+saveRDS(ps.rarefied, "ps.rarefied.rds")
 
 ```
 
 
-
-
-
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
-```{r}
-1 + 1
-```
-
-You can add options to executable code like this
-
-```         
-```
 
 The `echo: false` option disables the printing of code (only output is displayed).
