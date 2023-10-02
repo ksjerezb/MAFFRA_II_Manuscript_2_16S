@@ -11,8 +11,8 @@ library(lubridate)
 library(tidyverse)
 ```
 
-```{r include=FALSE}
-knitr::opts_chunk$set(fig.retina=2)
+```{r include = FALSE}
+knitr::opts_chunk$set(fig.retina = 2)
 ```
 
 ```{css echo = FALSE}
@@ -45,7 +45,7 @@ G'Kar: It is said that the future is always born in pain. The history of war is 
 ```{r, fig.show='hold'}
 ggplot(mtcars, aes(wt, mpg)) +
   geom_point() +
-  labs(title="mtcars again, it seems") 
+  labs(title = "mtcars again, it seems")
 ```
 
 Last updated on `r today()`  

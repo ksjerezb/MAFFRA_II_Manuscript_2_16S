@@ -1,0 +1,755 @@
+---
+title: "workflow part III"
+format:
+  html:
+    code-fold: true
+    code-tools: true
+execute: 
+  echo: true
+  warning: false
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+# Beta diversity
+
+## Data prep
+
+```{r}
+#| echo: false
+#| message: false
+
+library(tidyverse)
+library(phyloseq)
+library(ampvis2)
+library(showtext)
+library(patchwork)
+library(vegan)
+library(geomtextpath)
+library(ggnewscale)
+library(plotly)
+
+mypal = c("#4DBBD5B2", "#00A087B2","#E64B35B2","#3C5488B2")
+mypal2 =wesanderson::wes_palette("Zissou1", 6, type = "continuous")
+
+```
+
+```{r get.data}
+#| echo: false
+allday1=readRDS("ps.rarefied.rds")
+ps1.NON_rare=readRDS("ps1.NON_rare.rds")
+saminfo=readRDS("saminfo.rds")
+
+```
+
+```{r filter}
+#estimating relative abundance on rarefied data
+# allday = prune_taxa(taxa_sums(ps.rarefied) > 0, ps.rarefied)
+# minTotRelAbun = 0
+# x = taxa_sums(allday)
+# keepTaxa = taxa_names(allday)[which((x / sum(x)) > minTotRelAbun)]
+# allday <- prune_taxa(keepTaxa, allday)
+# tax_table(allday) <- tax_table(allday)[,1:6]
+
+allday1 = prune_taxa(taxa_sums(allday1) > 0, allday1)
+
+```
+
+```{r}
+pick_new_outgroup <- function(tree.unrooted){
+require("magrittr")
+require("data.table")
+require("ape") # ape::Ntip
+# tablify parts of tree that we need.
+treeDT <-
+     cbind(
+         data.table(tree.unrooted$edge),
+         data.table(length = tree.unrooted$edge.length)
+     )[1:Ntip(tree.unrooted)] %>%
+ cbind(data.table(id = tree.unrooted$tip.label))
+ # Take the longest terminal branch as outgroup
+ new.outgroup <- treeDT[which.max(length)]$id
+ return(new.outgroup) }
+
+my.tree <- phy_tree(allday1)
+out.group <- pick_new_outgroup(my.tree)
+out.group ## [1] "Seq5638"
+
+new.tree <- ape::root(my.tree, outgroup=out.group, resolve.root=TRUE)
+phy_tree(allday1) <- new.tree
+phy_tree(allday1)
+
+d1 <-  as.data.frame(otu_table(allday1))
+sams <- colnames(d1)
+saminfo$SampleID <-  rownames(saminfo)
+saminfo <- saminfo %>% relocate(SampleID)
+
+d2 <- saminfo %>%  filter(SampleID %in% sams)
+
+saminfo=d2
+
+d3 <- as.data.frame(phyloseq::tax_table(allday1))
+
+d3$Genus=recode(d3$Genus,"NA"="Unclassified bacteria")
+
+d <- amp_load(
+  otutable = d1,
+  metadata = d2,
+  taxonomy = d3,
+  tree = new.tree
+)
+
+```
+
+## Sampling effort correction comparison
+
+```{r}
+##allday is the rarefy dataset
+# allday1 <- subset_samples(allday1, PigID %in% my_pigs)
+
+wunifrac_dist = phyloseq::distance(allday1, method="unifrac", weighted=T)
+
+```
+
+```{r}
+#comparing distances
+                                          
+group_count <- ps1.NON_rare%>%
+  psmelt()%>% # Melt to long format
+  select(Sample,OTU,Abundance)%>%
+  group_by(Sample) %>%
+  summarize(n_seqs = sum(Abundance))
+group_count$n_seqs %>% range
+
+rand_df <- ps1.NON_rare%>%
+  psmelt()%>% # Melt to long format
+  select(Sample,OTU,Abundance)%>%
+  pivot_wider(names_from=OTU, values_from=Abundance, values_fill = 0) %>%
+  as.data.frame()
+
+rownames(rand_df) <- rand_df$Sample
+rand_df <- rand_df[,-1]
+
+
+
+```
+
+```{r aitchison_dist}
+
+ps_clr <- microbiome::transform(ps1.NON_rare, "clr")          
+# phyloseq::otu_table(ps1.NON_rare)[1:5, 1:5]
+# phyloseq::otu_table(ps_clr)[1:5, 1:5]
+
+rclr_df <- ps_clr%>%
+  psmelt()%>% # Melt to long format
+  as_tibble()%>%
+  select(OTU,Sample,Abundance) %>%
+  pivot_wider(names_from=OTU, values_from=Abundance, values_fill=list(Value = 0)) %>%
+  as.data.frame()
+
+rownames(rclr_df) <- rclr_df$Sample
+rclr_df <- rclr_df[,-1]
+
+```
+
+```{r dist_calc}
+norare_dist <- vegdist(rand_df, method="euclidean")
+rare_dist <- avgdist(rand_df, dmethod="euclidean", sample=min(group_count$n_seqs))
+rclr_dist <- vegdist(rclr_df, method="euclidean")
+
+```
+
+```{r for_comp_dist}
+wunifrac_dist_tb <- 
+  wunifrac_dist %>%
+  as.matrix %>%
+  as_tibble(rownames = "sample") %>%
+  pivot_longer(cols=-sample) %>%
+  filter(name < sample)
+
+norare_dtbl <- norare_dist %>%
+  as.matrix %>%
+  as_tibble(rownames = "sample") %>%
+  pivot_longer(cols=-sample) %>%
+  filter(name < sample)
+
+rare_dtbl <- rare_dist %>%
+  as.matrix %>%
+  as_tibble(rownames = "sample") %>%
+  pivot_longer(cols=-sample) %>%
+  filter(name < sample)
+
+rclr_dtbl <- rclr_dist %>%
+  as.matrix %>%
+  as_tibble(rownames = "sample") %>%
+  pivot_longer(cols=-sample) %>%
+  filter(name < sample)
+
+```
+
+```{r plot_dist}
+inner_join(norare_dtbl, rare_dtbl, by=c("sample", "name")) %>%
+  inner_join(., rclr_dtbl, by=c("sample", "name")) %>%
+  inner_join(., wunifrac_dist_tb, by=c("sample", "name")) %>%
+  inner_join(., group_count, by=c("sample" = "Sample")) %>%
+  inner_join(., group_count, by=c("name" = "Sample")) %>%
+  mutate(diffs = abs(n_seqs.x - n_seqs.y)) %>%
+  select(sample, name, norare=value.x, rare=value.y, rclr=value.x.x, wuni=value.y.y, diffs) %>%
+  pivot_longer(cols=c(norare, rare, rclr, wuni), names_to="method", values_to="dist") %>%
+  ggplot(aes(x=diffs, y=dist)) +
+  geom_point() +
+  facet_wrap(~method, nrow=4, scales="free_y") +
+  geom_smooth()
+
+```
+
+```{r nmsd_est}
+set.seed(2022)
+
+saminfo <- saminfo %>% mutate_at(names(saminfo)[1:9], as.factor)
+saminfo$Source_treat=interaction(saminfo$Source,saminfo$treat)
+
+#run and saved 
+# nmds1 <- metaMDS(wunifrac_dist,k=2, trymax=300, maxit = 2000, smin = 1e-4, sfgrmin = 1e-11, sratmax= 0.99999)
+# nmds2 <- metaMDS(norare_dist,k=2, trymax=2000, maxit = 2000, smin = 1e-4, sfgrmin = 1e-11, sratmax= 0.99999)
+# nmds3 <- metaMDS(rare_dist,k=2, trymax=500, maxit = 2000, smin = 1e-4, sfgrmin = 1e-11, sratmax= 0.99999)
+# nmds4 <- metaMDS(rclr_dist)
+# saveRDS(nmds1, "nmds1.rds")
+# saveRDS(nmds2, "nmds2.rds")
+# saveRDS(nmds3, "nmds3.rds")
+# saveRDS(nmds4, "nmds4.rds")
+
+nmds1 <- readRDS("nmds1.rds")
+nmds2 <- readRDS("nmds2.rds")
+nmds3 <- readRDS("nmds3.rds")
+nmds4 <- readRDS("nmds4.rds")
+
+```
+
+### NMDS -W Unifrac distance B diversity
+
+```{r w_unifrac}
+#| message: false
+
+# stress <- nmds$stress
+
+metadata_nmds <- vegan::scores(nmds1, display="site") %>%
+  as_tibble(rownames = "samples") %>%
+  dplyr::inner_join (., saminfo, by= join_by(samples == SampleID))
+
+centroid <- metadata_nmds %>%
+  group_by(treat, Source) %>%
+  summarize(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
+
+beta_plot=metadata_nmds %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, color=treat)) +
+  geom_point() +
+  stat_ellipse(show.legend=FALSE) +
+  geom_point(data=centroid, size=3, shape=21, color="black",
+             aes(fill=treat), show.legend=FALSE)+
+  scale_colour_manual(values = mypal)+
+  scale_fill_manual(values = mypal)+
+  facet_wrap(~Source, nrow=6)
+
+beta_plot
+
+adonis2(wunifrac_dist~saminfo$treat*saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(wunifrac_dist~saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(wunifrac_dist~saminfo$treat,
+       strata=saminfo$batch)
+
+bd <- betadisper(wunifrac_dist, saminfo$Source)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(wunifrac_dist, saminfo$treat)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(wunifrac_dist, saminfo$Source_treat)
+anova(bd)
+permutest(bd)
+
+```
+
+```{r}
+
+```
+
+### NMDS -Non rarefy euclidean distance diversity
+
+```{r non_rare_eucl}
+set.seed(1)
+# stress <- nmds$stress
+metadata_nmds <- vegan::scores(nmds2, display="site") %>%
+  as_tibble(rownames = "samples") %>%
+  dplyr::inner_join (., saminfo, by= join_by(samples == SampleID))
+
+centroid <- metadata_nmds %>%
+  group_by(treat, Source) %>%
+  summarize(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
+
+metadata_nmds %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, color=treat)) +
+  geom_point() +
+  stat_ellipse(show.legend=FALSE) +
+  geom_point(data=centroid, size=3, shape=21, color="black",
+             aes(fill=treat), show.legend=FALSE)+
+  scale_colour_manual(values = mypal)+
+  scale_fill_manual(values = mypal)+
+  facet_wrap(~Source, nrow=6)
+
+adonis2(norare_dist~saminfo$treat*saminfo$Source,
+       strata=saminfo$PigID)
+adonis2(norare_dist~saminfo$Source,
+       strata=saminfo$PigID)
+adonis2(norare_dist~saminfo$treat,
+       strata=saminfo$batch)
+
+bd <- betadisper(norare_dist, saminfo$Source)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(norare_dist, saminfo$treat)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(norare_dist, saminfo$Source_treat)
+anova(bd)
+permutest(bd)
+```
+
+### NMDS -Rarefy euclidean distance diversity
+
+```{r rare_eucl}
+metadata_nmds <- vegan::scores(nmds3, display="site") %>%
+  as_tibble(rownames = "samples") %>%
+  dplyr::inner_join (., saminfo, by= join_by(samples == SampleID))
+
+centroid <- metadata_nmds %>%
+  group_by(treat, Source) %>%
+  summarize(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
+
+metadata_nmds %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, color=treat)) +
+  geom_point() +
+  stat_ellipse(show.legend=FALSE) +
+  geom_point(data=centroid, size=3, shape=21, color="black",
+             aes(fill=treat), show.legend=FALSE)+
+  scale_colour_manual(values = mypal)+
+  scale_fill_manual(values = mypal)+
+  facet_wrap(~Source, nrow=6)
+
+adonis2(rare_dist~saminfo$treat*saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(rare_dist~saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(rare_dist~saminfo$treat,
+       strata=saminfo$batch)
+
+bd <- betadisper(rare_dist, saminfo$Source)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(rare_dist, saminfo$treat)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(rare_dist, saminfo$Source_treat)
+anova(bd)
+permutest(bd)
+```
+
+### NMDS -Robust CLR euclidean distance diversity
+
+```{r rclr_dist_not}
+library(vegan)
+# stress <- nmds$stress
+
+metadata_nmds <- vegan::scores(nmds4, display="site") %>%
+  as_tibble(rownames = "samples") %>%
+  dplyr::inner_join (., saminfo, by= join_by(samples == SampleID))
+
+centroid <- metadata_nmds %>%
+  group_by(treat, Source) %>%
+  summarize(NMDS1=mean(NMDS1), NMDS2=mean(NMDS2))
+
+metadata_nmds %>%
+  ggplot(aes(x=NMDS1, y=NMDS2, color=treat)) +
+  geom_point() +
+  stat_ellipse(show.legend=FALSE) +
+  geom_point(data=centroid, size=3, shape=21, color="black",
+             aes(fill=treat), show.legend=FALSE)+
+  scale_colour_manual(values = mypal)+
+  scale_fill_manual(values = mypal)+
+  facet_wrap(~Source, nrow=6)
+
+beta_plot
+
+adonis2(rclr_dist~saminfo$treat*saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(rclr_dist~saminfo$Source,
+       strata=saminfo$PigID)
+
+adonis2(rclr_dist~saminfo$treat,
+       strata=saminfo$batch)
+
+bd <- betadisper(rclr_dist, saminfo$Source)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(rclr_dist, saminfo$treat)
+anova(bd)
+permutest(bd)
+
+bd <- betadisper(rclr_dist, saminfo$Source_treat)
+anova(bd)
+permutest(bd)
+```
+
+## Ordinate with Phyloseq
+
+### NMDS - Unifrac dist
+
+```{r}
+#Generate distances
+ord_unifrac <- ordinate(allday1, method = "NMDS", distance = "wunifrac") 
+ord_unifrac_un <- ordinate(allday1, method = "NMDS", distance = "unifrac")   
+#Plot ordinations
+a <- plot_ordination(allday1, ord_unifrac, color = "treat") + geom_point(size = 2)+
+  facet_wrap(~Source, nrow=6)+scale_colour_manual(values = mypal)
+b <- plot_ordination(allday1, ord_unifrac_un, color = "treat") + geom_point(size = 2)+
+    facet_wrap(~Source, nrow=6)+scale_colour_manual(values = mypal)
+
+
+a+b
+
+```
+
+### Bray dist - Different ordination methods
+
+```{r}
+dist = "bray"
+ord_meths = c("DCA", "CCA", "RDA", "DPCoA", "NMDS", "MDS", "PCoA")
+plist = plyr::llply(as.list(ord_meths), function(i, physeq, dist){
+        ordi = ordinate(physeq, method=i, distance=dist)
+        plot_ordination(physeq, ordi, "samples", color="treat")
+}, allday1, dist)
+names(plist) <- ord_meths
+
+```
+
+```{r}
+pdataframe = plyr::ldply(plist, function(x){
+    df = x$data[, 1:2]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$data))
+})
+names(pdataframe)[1] = "method"
+
+```
+
+```{r}
+
+pdataframe$treat<- factor(pdataframe$treat,
+                        levels =unique(pdataframe$treat)[c(1:4)])
+
+pdataframe$Source <-factor(pdataframe$Source,levels =c( "Sto","Si2","Si3","Cae5","Co2","faecal"))
+
+
+p = ggplot(pdataframe, aes(Axis_1, Axis_2, color=Source, shape=treat, fill=Source))
+
+p + geom_point(size=1) + 
+   facet_wrap(~method, scales="free")
+# + scale_colour_manual(values = mypal) +scale_fill_manual(values = alpha(mypal, 0.2))
+
+
+```
+
+### Rclr - aitchinson dist
+
+```{r}
+my.tree2 <- phy_tree(ps_clr)
+out.group <- pick_new_outgroup(my.tree2)
+out.group ## [1] "Seq5638"
+
+new.tree2 <- ape::root(my.tree2, outgroup=out.group, resolve.root=TRUE)
+phy_tree(ps_clr) <- new.tree2
+phy_tree(ps_clr)
+
+```
+
+```{r}
+# ps_clr
+ord_unifrac <- ordinate(ps_clr, method = "PCoA", distance = "euclidean") 
+#Plot ps_clr
+a <- plot_ordination(ps_clr, ord_unifrac, color = "treat") + geom_point(size = 2)+
+  facet_wrap(~Source, nrow=6)+scale_colour_manual(values = mypal)
+b <- plot_ordination(ps_clr, ord_unifrac_un, color = "treat") + geom_point(size = 2)+
+    facet_wrap(~Source, nrow=6)+scale_colour_manual(values = mypal)
+
+a+b
+```
+
+```{r}
+dist = "euclidean"
+ord_meths = c( "RDA", "MDS", "PCoA")
+plist3 = plyr::llply(as.list(ord_meths), function(i, physeq, dist){
+        ordi = ordinate(physeq, method=i, distance=dist)
+        plot_ordination(physeq, ordi, "samples", color="treat")
+}, ps_clr, dist)
+names(plist3) <- ord_meths
+```
+
+```{r}
+pdataframe3 = plyr::ldply(plist3, function(x){
+    df = x$data[, 1:2]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$data))
+})
+names(pdataframe3)[1] = "method"
+
+
+pdataframe3$treat<- factor(pdataframe3$treat,
+                        levels =unique(pdataframe3$treat)[c(1:4)])
+
+pdataframe3$Source <-factor(pdataframe3$Source,levels =c( "Sto","Si2","Si3","Cae5","Co2","faecal"))
+
+pdataframe3|>
+  ggplot()+
+    geom_point(aes(Axis_1, Axis_2,shape=treat),size=1, alpha = 0) +
+    stat_ellipse(aes(Axis_1, Axis_2, colour= Source, label = Source),
+                 geom = "textpath", hjust = c(0.57), show.legend = FALSE, inherit.aes = FALSE)+
+    facet_wrap(~method, scales="free") +
+    scale_colour_manual(values = mypal2) +
+  new_scale_colour()+
+  geom_point(aes(Axis_1, Axis_2,colour=treat, shape=treat),size=1) +
+      scale_colour_manual(values = mypal) 
+
+
+```
+
+# Ordinate with AmpViz
+
+## Whole dataset
+
+```{r}
+dist = "bray"
+ord_meths = c("PCA", "RDA", "CA", "CCA", "DCA", "NMDS", "PCOA", "PCOA")
+
+plist2 = plyr::llply(as.list(ord_meths), function(i, d, dist){
+  ordin<- amp_ordinate(
+  data=d, 
+  type = i,
+  filter_species = 0.1,
+  distmeasure = dist,
+  constrain = c("PigID","Feed"),
+  transform = "none",
+  sample_color_by = "Source",
+  sample_shape_by = "Feed",
+  sample_colorframe = T,
+  sample_colorframe_label = "Source",
+  detailed_output = TRUE
+)
+}, d, dist)
+
+names(plist2) <- ord_meths
+
+pdataframe2 = plyr::ldply(plist2, function(x){
+    df = x$plot$data[, 36:37]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$plot$data[, -c(12:35)]))
+})
+
+names(pdataframe2)[1] = "method"
+
+```
+
+### all methods Bray
+
+```{r}
+pdataframe2$treat<- factor(pdataframe2$treat,
+                        levels =unique(pdataframe2$treat)[c(1:4)])
+
+pdataframe2$Source <-factor(pdataframe2$Source,levels =c( "Sto","Si2","Si3","Cae5","Co2","faecal"))
+
+# p = ggplot(pdataframe2, aes(Axis_1, Axis_2, color=Source, fill=Source))
+# p + geom_point(size=1) + 
+#     stat_ellipse(show.legend=FALSE) +
+#    facet_wrap(~method, scales="free") +
+#     scale_colour_manual(values = mypal2) +scale_fill_manual(values = alpha(mypal2, 0.2))
+
+
+pdataframe2|>
+  ggplot()+
+    geom_point(aes(Axis_1, Axis_2,shape=treat),size=1, alpha = 0) +
+    stat_ellipse(aes(Axis_1, Axis_2, colour= Source, label = Source),
+                 geom = "textpath", hjust = c(0.3), show.legend = FALSE, inherit.aes = FALSE)+
+    facet_wrap(~method, scales="free", ncol = 2) +
+    scale_colour_manual(values = mypal2) +
+  new_scale_colour()+
+  geom_point(aes(Axis_1, Axis_2,colour=treat, shape=treat),size=1) +
+      scale_colour_manual(values = mypal) 
+
+```
+
+```{r}
+ordinationresult <- amp_ordinate(
+  d, 
+  type = "PCOA",
+  filter_species = 0.1,
+  distmeasure = "bray",
+  constrain = c("PigID", "Feed"),
+  transform = "none",
+  sample_color_by = "Source",
+  sample_shape_by = "Feed",
+  sample_colorframe = T,
+  sample_colorframe_label = "Source",
+  detailed_output = TRUE
+)
+
+ordinationresult$plot$data|>
+    ggplot()+
+    geom_point(aes(PCo1, PCo2,shape=treat),size=1, alpha = 0) +
+    stat_ellipse(aes(PCo1, PCo2, colour= Source, label = Source),
+                 geom = "textpath", hjust = c(0.3), show.legend = FALSE, inherit.aes = FALSE)+
+    # facet_wrap(~method, scales="free", ncol = 2) +
+    scale_colour_manual(values = mypal2) +
+  new_scale_colour()+
+  geom_point(aes(PCo1, PCo2,colour=treat, shape=treat),size=1) +
+      scale_colour_manual(values = mypal) 
+
+
+```
+
+```{r}
+ordinationresult$plot$data|>
+plotly::plot_ly(x = ~PCo1, y = ~PCo2, z = ~PCo3, mode = 'text',color = ~Source, text=~treat)
+
+```
+
+### All except fecal sample
+
+```{r}
+no_faecal_d <- amp_filter_samples(d,!(Source %in% c("faecal")))
+dist = "bray"
+ord_meths = c("PCA", "RDA", "CA", "CCA", "DCA", "NMDS", "PCOA", "PCOA")
+
+plist4 = plyr::llply(as.list(ord_meths), function(i, d, dist){
+  ordin<- amp_ordinate(
+  data=d, 
+  type = i,
+  filter_species = 0.1,
+  distmeasure = dist,
+  constrain = c("PigID","Feed"),
+  transform = "none",
+  sample_color_by = "Source",
+  sample_shape_by = "Feed",
+  sample_colorframe = T,
+  sample_colorframe_label = "Source",
+  detailed_output = TRUE
+)
+}, no_faecal_d, dist)
+
+names(plist4) <- ord_meths
+
+pdataframe4 = plyr::ldply(plist4, function(x){
+    df = x$plot$data[, 36:37]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$plot$data[, -c(12:35)]))
+})
+
+names(pdataframe4)[1] = "method"
+```
+
+```{r}
+pdataframe4$treat<- factor(pdataframe4$treat,
+                        levels =unique(pdataframe4$treat)[c(1:4)])
+
+pdataframe4$Source <-factor(pdataframe4$Source,levels =c( "Sto","Si2","Si3","Cae5","Co2","faecal"))
+
+pdataframe4|>
+  ggplot()+
+    geom_point(aes(Axis_1, Axis_2,shape=treat),size=1, alpha = 0) +
+    stat_ellipse(aes(Axis_1, Axis_2, colour= Source, label = Source),
+                 geom = "textpath", hjust = c(0.3), show.legend = FALSE, inherit.aes = FALSE)+
+    facet_wrap(~method, scales="free", ncol = 2) +
+    scale_colour_manual(values = mypal2) +
+  new_scale_colour()+
+  geom_point(aes(Axis_1, Axis_2,colour=treat, shape=treat),size=1) +
+      scale_colour_manual(values = mypal) 
+
+```
+
+### Divided by segments
+
+```{r}
+Sto_d <- amp_filter_samples(d,Source %in% c("Sto"))
+Si2_d <- amp_filter_samples(d,Source %in% c("Si2"))
+Si3_d <- amp_filter_samples(d,Source %in% c("Si3"))
+Cae5_d <- amp_filter_samples(d,Source %in% c("Cae5"))
+Co2_d <- amp_filter_samples(d,Source %in% c("Co2"))
+faecal_d <- amp_filter_samples(d,Source %in% c("faecal"))
+d_segments_list=list(Sto_d, Si2_d, Si3_d, Cae5_d, Co2_d)
+
+```
+
+```{r}
+
+plist5 = plyr::llply(d_segments_list, function(i){
+  ordin<- amp_ordinate(
+  data=i, 
+  type = "ca",
+  filter_species = 0.005,
+  # distmeasure = "bray",
+  constrain = c("batch","Coli","treat"),
+  transform = "hellinger",
+  sample_color_by = "treat",
+  # sample_shape_by = "Feed",
+  # sample_colorframe = T,
+  sample_colorframe_label = "treat",
+  detailed_output = TRUE
+)
+})
+
+names(plist5) <- c("Sto_d", "Si2_d", "Si3_d", "Cae5_d", "Co2_d")
+
+pdataframe5 = plyr::ldply(plist5, function(x){
+    df = x$plot$data[, 36:37]
+    colnames(df) = c("Axis_1", "Axis_2")
+    return(cbind(df, x$plot$data[, -c(12:35)]))
+})
+
+names(pdataframe5)[1] = "Segment"
+
+```
+
+#### Bray dist - PCA, BY SEGMENT
+
+```{r}
+pdataframe5$treat<- factor(pdataframe5$treat,
+                        levels =unique(pdataframe5$treat)[c(1:4)])
+
+pdataframe5$Segment <-factor(pdataframe5$Segment,levels =c( "Sto_d","Si2_d","Si3_d","Cae5_d","Co2_d","faecal_d"))
+
+pdataframe5|>
+  ggplot()+
+    geom_point(aes(Axis_1, Axis_2,shape=treat, colour= treat),size=1, alpha = 1) +
+    stat_ellipse(aes(Axis_1, Axis_2, colour= treat, label = treat),
+                 geom = "textpath", hjust = c(0.3), show.legend = FALSE, inherit.aes = FALSE)+
+    facet_wrap(~Segment, scales="fixed", ncol = 2) +
+    scale_colour_manual(values = mypal) 
+
+```
+
+```{r}
+
+```

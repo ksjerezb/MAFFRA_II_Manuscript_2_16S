@@ -2,25 +2,343 @@
 title: "workflow part II"
 format: html
 editor: visual
+editor_options: 
+  chunk_output_type: inline
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+#| echo: false
+#| message: false
+#| warning: false
+#| 
+library(tidyverse)
+library(phyloseq)
+library(ampvis2)
+library(showtext)
+library(glmmTMB)
+library(performance)
+library(DHARMa)
+library(ggeffects)
+library(emmeans)
+library(patchwork)
+library(vegan)
+mypal = c("#4DBBD5B2", "#00A087B2","#E64B35B2","#3C5488B2")
+
+source("./taxa_summary.R", local = TRUE)
+```
+
+## Reltaive abundance
+
+```{r get.data}
+#| echo: false
+ps.rarefied=readRDS("ps.rarefied.rds")
+ps1.NON_rare=readRDS("ps1.NON_rare.rds")
+saminfo=readRDS("saminfo.rds")
+
 ```
 
 You can add options to executable code like this
 
-```{r}
-#| echo: false
-2 * 2
+```{r filter}
+#estimating relative abundance on rarefied data
+allday = prune_taxa(taxa_sums(ps.rarefied) > 0, ps.rarefied)
+allday1 = prune_taxa(taxa_sums(ps.rarefied) > 0, ps.rarefied)
+
+mdt = fast_melt(allday)
+prevdt = mdt[, list(Prevalence = sum(count > 0), 
+                    TotalCounts = sum(count)),
+             by = TaxaID]
+
+occurences<-table(unlist(prevdt$Prevalence)) 
+# occurences
+
+minTotRelAbun = 0
+x = taxa_sums(allday)
+keepTaxa = taxa_names(allday)[which((x / sum(x)) > minTotRelAbun)]
+
+allday <- prune_taxa(keepTaxa, allday)
+
+tax_table(allday) <- tax_table(allday)[,1:6]
+
 ```
+
+```{r to_ampload}
+## Plotting abundance as 
+d1 <-  as.data.frame(otu_table(allday1))
+sams <- colnames(d1)
+saminfo$SampleID <-  rownames(saminfo)
+saminfo <- saminfo %>% relocate(SampleID)
+
+d2 <- saminfo %>%  filter(SampleID %in% sams)
+
+saminfo=d2
+
+d3 <- as.data.frame(phyloseq::tax_table(allday))
+
+d3$Genus=recode(d3$Genus,"NA"="Unclassified bacteria")
+
+d <- amp_load(
+  otutable = d1,
+  metadata = d2,
+  taxonomy = d3
+)
+
+d$metadata$Source<- factor(d$metadata$Source,
+                        levels =unique(d$metadata$Source)[c(1:6)])
+
+d$metadata$Source<-fct_relevel(d$metadata$Source, "faecal", after = 5)
+
+# d$metadata$Day<- recode_factor(d$metadata$Day,
+#                                `1` = "Day 1", `3` = "Day 3",`7` = "Day 7",`14` = "Day 14",`21` = "Day 21")
+
+d$metadata$treat<- factor(d$metadata$treat,
+                        levels =unique(d$metadata$treat)[c(1:4)])
+
+p <- amp_heatmap(
+  data = d,
+  group_by = "treat",
+  facet_by = "Source",
+  tax_aggregate = "Phylum",
+  tax_show = 8,
+  showRemainingTaxa =TRUE,
+  # plot_values_size=4,
+  round = 3)
+
+q <- amp_heatmap(
+  data = d,
+  group_by = "treat",
+  facet_by = "Source",
+  tax_aggregate = "Genus",tax_show = 20,showRemainingTaxa =TRUE,
+  # plot_values_size=4
+  # tax_empty="OTU"
+  )
+
+```
+
+### Relative abundance
+
+```{r plot}
+# showtext_auto()
+
+showtext_auto()
+p + ggtitle("Phylum level heatmap - Grouped by source") +
+  theme(
+        # plot.title = element_blank(),
+        axis.text.x = element_text(angle = 90, size=20, vjust = 0.5, face = "bold" ),
+        axis.text.y = element_text(size=20),
+        legend.position="right",
+        # panel.spacing = unit(0.05,"lines"),
+        panel.border = element_rect(color = "black",fill = NA),
+        strip.text = element_text(face = "bold", hjust = 0.5,size=20),
+        plot.margin = unit(c(.01,.01,.01,.01), "cm"),
+        text = element_text(size = 18))
+
+
+```
+
+```{r}
+q+ ggtitle("Genus level heatmap - Grouped by source") +
+  # theme_ipsum_rc(panel_spacing = grid::unit(0.05, "lines"))+
+  theme(
+        # plot.title = element_blank(),
+        axis.text.x = element_text(angle = 90, size=20, vjust = 0.5, face = "bold" ),
+        axis.text.y = element_text(size=20, face = "italic"),
+        legend.position="right",
+        # panel.spacing = unit(0.05,"lines"),
+        panel.border = element_rect(color = "black",fill = NA),
+        strip.text = element_text(face = "bold", hjust = 0.5,size=20),
+        plot.margin = unit(c(.01,.01,.01,.01), "cm"),
+        text = element_text(size = 18)
+        )
+```
+
+## Alpha Diversity
+
+```{r alpha_calc}
+##estimate alpha diversity measures
+alpha_meas = c("Observed", "Shannon", "InvSimpson")
+alpha.diversity <- estimate_richness(allday1, measures = alpha_meas)
+
+##fixed factors
+my_cols=c("Source","sow", "pen", "batch", "Coli","treat","PigID")
+meta <- sample_data(allday1)
+
+alpha.diversity2 <- cbind(alpha.diversity, meta[,c(1:11,13)])
+alpha.diversity2[c(my_cols)]<- lapply(alpha.diversity2[my_cols], factor)
+alpha.diversity2$Source<-fct_relevel(alpha.diversity2$Source, "faecal", after = 6)
+alpha.diversity2$treat=factor(alpha.diversity2$treat,levels=c("NC","PC","GA","GB"))
+
+```
+
+```{r glmm_alpha}
+alpha.diversity2=alpha.diversity2[which(alpha.diversity2$Source!= c("faecal")),]
+alpha.diversity2$Source<-factor(alpha.diversity2$Source,levels =c( "Sto","Si2","Si3","Cae5","Co2"))
+alpha.diversity2$PigID<- factor(alpha.diversity2$PigID,levels =unique(alpha.diversity2$PigID))
+
+
+fit_oB <-alpha.diversity2 %>% 
+          glmmTMB(Observed  ~  treat  + Source + treat:Source +
+                 (1|sow)+
+                 (1|batch),
+                 # (1| PigID) ,
+                 data = .,
+                 # family = nbinom2(),
+                 na.action = na.exclude
+    )
+
+summary(fit_oB)
+#diagnostics
+check_model(fit_oB)
+model_performance(fit_oB)
+simulationOutput <- simulateResiduals(fittedModel = fit_oB)
+plot(simulationOutput,  asFactor = TRUE)
+# plotResiduals(simulationOutput, form = alpha.diversity2$treat)
+plotResiduals(simulationOutput, form = alpha.diversity2$Source)
+
+```
+
+```{r fit_oB_plot}
+#for plot
+joint_tests(fit_oB)
+plotme<-ggpredict(fit_oB ,terms=c("Source","treat"))
+fit_oB_PLOT=
+  plot(plotme, add.data = T, dodge=.5)
+emmeans(fit_oB, ~ treat|Source, lmer.df = "satterthwaite")
+emmeans(fit_oB,pairwise ~ treat, lmer.df = "satterthwaite")
+emmeans(fit_oB,pairwise ~ Source, lmer.df = "satterthwaite")
+# cld(emmeans(fit_oB,pairwise~Source|treat, lmer.df = "satterthwaite"),Letters = letters, adjust = "BH")
+```
+
+```{r}
+fit_S <-alpha.diversity2 %>% 
+          glmmTMB(Shannon  ~  treat  + Source + treat:Source +
+                 (1|sow)+
+                 (1|batch),
+                 # (1| PigID) ,
+                 data = .,
+                 # family = nbinom2(),
+                 na.action = na.exclude
+    )
+
+summary(fit_S)
+#diagnostics
+check_model(fit_S)
+model_performance(fit_S)
+simulationOutput <- simulateResiduals(fittedModel = fit_S)
+plot(simulationOutput,  asFactor = TRUE)
+# plotResiduals(simulationOutput, form = alpha.diversity2$treat)
+plotResiduals(simulationOutput, form = alpha.diversity2$Source)
+
+```
+
+```{r fit_S}
+#for plot
+joint_tests(fit_S)
+plotme<-ggpredict(fit_S ,terms=c("Source","treat"))
+fit_S_plot=
+  plot(plotme, add.data = T, dodge=.5)
+emmeans(fit_S, ~ treat|Source, lmer.df = "satterthwaite")
+emmeans(fit_S,pairwise ~ treat, lmer.df = "satterthwaite")
+emmeans(fit_S,pairwise ~ Source, lmer.df = "satterthwaite")
+```
+
+```{r}
+fit_I <-alpha.diversity2 %>% 
+          glmmTMB(InvSimpson  ~  treat  + Source + treat:Source +
+                 (1|sow)+
+                 (1|batch)+
+                 (1| PigID),
+                 data = .,
+                 family = Gamma(link = "log"),
+                 na.action = na.exclude
+    )
+
+summary(fit_I)
+#diagnostics
+check_model(fit_I)
+model_performance(fit_I)
+simulationOutput <- simulateResiduals(fit_I)
+plot(simulationOutput,  asFactor = TRUE)
+# plotResiduals(simulationOutput, form = alpha.diversity2$treat)
+plotResiduals(simulationOutput, form = alpha.diversity2$Source)
+
+```
+
+```{r fit_I}
+#for plot
+joint_tests(fit_I)
+plotme<-ggpredict(fit_I ,terms=c("Source","treat"))
+I_plot=
+  plot(plotme, add.data = T, dodge=.5)
+emmeans(fit_I, ~ treat|Source, lmer.df = "satterthwaite")
+emmeans(fit_I,pairwise ~ treat, lmer.df = "satterthwaite")
+emmeans(fit_I,pairwise ~ Source, lmer.df = "satterthwaite")
+```
+
+## my alpha plot
+
+```{r}
+# fit_oB_PLOT+
+# fit_S_plot+
+# I_plot
+
+a=
+  fit_oB_PLOT+
+  scale_colour_manual(values = mypal)+
+  labs(x="Gastrointestinal Segment")+
+  theme(plot.title = element_blank(),legend.title = element_blank(),
+          axis.ticks.length.y = unit(.10, "cm"),
+          axis.ticks.length.x = unit(.10, "cm"),
+          axis.text.y = element_text(margin = margin(r=0.125, unit = "cm")),
+          axis.text.x = element_text(margin = margin(t=0.125, unit = "cm"))
+            # legend.margin=margin(t=-5)
+            )
+
+b=fit_S_plot+
+  scale_colour_manual(values = mypal)+
+  labs(x="Gastrointestinal Segment")+
+  theme(plot.title = element_blank(),legend.title = element_blank(),
+          axis.ticks.length.y = unit(.10, "cm"),
+          axis.ticks.length.x = unit(.10, "cm"),
+          axis.text.y = element_text(margin = margin(r=0.125, unit = "cm")),
+          axis.text.x = element_text(margin = margin(t=0.125, unit = "cm"))
+            # legend.margin=margin(t=-5)
+            )
+
+c=I_plot+
+  scale_colour_manual(values = mypal)+
+  labs(x="Gastrointestinal Segment")+
+  theme(plot.title = element_blank(),legend.title = element_blank(),
+          axis.ticks.length.y = unit(.10, "cm"),
+          axis.ticks.length.x = unit(.10, "cm"),
+          axis.text.y = element_text(margin = margin(r=0.125, unit = "cm")),
+          axis.text.x = element_text(margin = margin(t=0.125, unit = "cm"))
+            # legend.margin=margin(t=-5)
+            )
+
+alpha_plot=a+b+c+plot_layout(guides = 'collect'
+                               # widths = unit(rep(4,3), c(rep("cm",3))),
+                               # heights = unit(rep(8,3), c(rep("cm",3)))
+                               # widths = rep(7,3),
+                               # heights = rep(10,3)
+                               )&
+    theme(plot.title = element_blank(),
+     legend.position = "top",
+     # legend.margin=margin(t=-5),
+     # text=element_text(size=42),
+     axis.title = element_text(face = "bold"),
+     plot.margin = unit(c(.1,.1,.1,.1), "cm")
+     )
+
+alpha_plot
+# ggsave("alpha.png",plot=alpha_plot ,path = "myplots/", 
+#        height = 8, width = 18, 
+#        scale=1.2,
+#        units = "cm", dpi = "retina")
+
+```
+
+
+
 
 The `echo: false` option disables the printing of code (only output is displayed).

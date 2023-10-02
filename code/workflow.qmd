@@ -41,6 +41,8 @@ saminfo$sow<-as.factor(saminfo$sow)
 saminfo$cross2 <- paste( saminfo$Feed,  saminfo$Coli, sep='_')
 saminfo$cross2 <-as.factor(saminfo$cross2)
 saminfo$treat<- factor(saminfo$treat,levels =unique(saminfo$treat)[c(1:5)])
+saveRDS(saminfo,"saminfo.rds")
+
 #sample information (metadata) as mapping file
 mapping <- import_qiime_sample_data(mapfilename = '../data/pre/kevin_mapping_info_2.txt')
 mapping <- mapping[(row.names(mapping) %in% colnames(abundance) ), ]
@@ -96,8 +98,11 @@ phylo = prune_taxa(myTaxa,phylo)
 phylo <- subset_taxa(phylo, Kingdom == "Bacteria")
 phylo <- subset_taxa(phylo, !Phylum == "Cyanobacteria")
 
+my_pigs=unique(saminfo[which(saminfo$Source!=c("faecal")&saminfo$Source!=c("Control")),"PigID"])
+
 ## Seperate out relevant datasets
 phylo <- subset_samples(phylo, Day %in% c("21","30"))
+phylo <- subset_samples(phylo, PigID %in% my_pigs)
 
 ```
 
@@ -171,10 +176,11 @@ ps1 <- prune_taxa(keepTaxa, ps1)
 # gloms <- tax_glom(ps1, taxrank = 'Species')
 
 ps.rarefied = rarefy_even_depth(ps1, rngseed=1, sample.size=0.9*min(sample_sums(ps1)), replace=F)
+
 saveRDS(ps.rarefied, "ps.rarefied.rds")
+saveRDS(ps1, "ps1.NON_rare.rds")
+
 
 ```
-
-
 
 The `echo: false` option disables the printing of code (only output is displayed).

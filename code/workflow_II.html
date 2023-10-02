@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>workflow part II</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="workflow_II_files/libs/clipboard/clipboard.min.js"></script>
+<script src="workflow_II_files/libs/quarto-html/quarto.js"></script>
+<script src="workflow_II_files/libs/quarto-html/popper.min.js"></script>
+<script src="workflow_II_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="workflow_II_files/libs/quarto-html/anchor.min.js"></script>
+<link href="workflow_II_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="workflow_II_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="workflow_II_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="workflow_II_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="workflow_II_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">workflow part II</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'tidyverse' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ggplot2' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'tibble' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'tidyr' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'readr' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'purrr' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'dplyr' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'stringr' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'forcats' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'lubridate' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.2     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ ggplot2   3.4.2     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.1     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'showtext' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: sysfonts
+Loading required package: showtextdb</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'glmmTMB' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
+TMB was built with Matrix version 1.6.0
+Current Matrix version is 1.5.0
+Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'performance' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>This is DHARMa 0.4.6. For overview type '?DHARMa'. For recent changes, type news(package = 'DHARMa')</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'ggeffects' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'emmeans' was built under R version 4.2.3</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: permute
+Loading required package: lattice
+This is vegan 2.6-2</code></pre>
+</div>
+</div>
+<section id="reltaive-abundance" class="level2">
+<h2 class="anchored" data-anchor-id="reltaive-abundance">Reltaive abundance</h2>
+<p>You can add options to executable code like this</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#estimating relative abundance on rarefied data</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>allday <span class="ot">=</span> <span class="fu">prune_taxa</span>(<span class="fu">taxa_sums</span>(ps.rarefied) <span class="sc">&gt;</span> <span class="dv">0</span>, ps.rarefied)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>allday1 <span class="ot">=</span> <span class="fu">prune_taxa</span>(<span class="fu">taxa_sums</span>(ps.rarefied) <span class="sc">&gt;</span> <span class="dv">0</span>, ps.rarefied)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>mdt <span class="ot">=</span> <span class="fu">fast_melt</span>(allday)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: data.table</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'data.table'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:lubridate':
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:dplyr':
+
+    between, first, last</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:purrr':
+
+    transpose</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>prevdt <span class="ot">=</span> mdt[, <span class="fu">list</span>(<span class="at">Prevalence =</span> <span class="fu">sum</span>(count <span class="sc">&gt;</span> <span class="dv">0</span>), </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">TotalCounts =</span> <span class="fu">sum</span>(count)),</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>             by <span class="ot">=</span> TaxaID]</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>occurences<span class="ot">&lt;-</span><span class="fu">table</span>(<span class="fu">unlist</span>(prevdt<span class="sc">$</span>Prevalence)) </span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="co"># occurences</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>minTotRelAbun <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">taxa_sums</span>(allday)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>keepTaxa <span class="ot">=</span> <span class="fu">taxa_names</span>(allday)[<span class="fu">which</span>((x <span class="sc">/</span> <span class="fu">sum</span>(x)) <span class="sc">&gt;</span> minTotRelAbun)]</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>allday <span class="ot">&lt;-</span> <span class="fu">prune_taxa</span>(keepTaxa, allday)</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="fu">tax_table</span>(allday) <span class="ot">&lt;-</span> <span class="fu">tax_table</span>(allday)[,<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Plotting abundance as </span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>d1 <span class="ot">&lt;-</span>  <span class="fu">as.data.frame</span>(<span class="fu">otu_table</span>(allday1))</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>sams <span class="ot">&lt;-</span> <span class="fu">colnames</span>(d1)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>saminfo<span class="sc">$</span>SampleID <span class="ot">&lt;-</span>  <span class="fu">rownames</span>(saminfo)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>saminfo <span class="ot">&lt;-</span> saminfo <span class="sc">%&gt;%</span> <span class="fu">relocate</span>(SampleID)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> saminfo <span class="sc">%&gt;%</span>  <span class="fu">filter</span>(SampleID <span class="sc">%in%</span> sams)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>saminfo<span class="ot">=</span>d2</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>d3 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(phyloseq<span class="sc">::</span><span class="fu">tax_table</span>(allday))</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>d3<span class="sc">$</span>Genus<span class="ot">=</span><span class="fu">recode</span>(d3<span class="sc">$</span>Genus,<span class="st">"NA"</span><span class="ot">=</span><span class="st">"Unclassified bacteria"</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">amp_load</span>(</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">otutable =</span> d1,</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">metadata =</span> d2,</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">taxonomy =</span> d3</span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Could not find a column named OTU/ASV in otutable, using rownames as
+OTU ID's</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Could not find a column named OTU/ASV in taxonomy, using rownames as
+OTU ID's</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>metadata<span class="sc">$</span>Source<span class="ot">&lt;-</span> <span class="fu">factor</span>(d<span class="sc">$</span>metadata<span class="sc">$</span>Source,</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">levels =</span><span class="fu">unique</span>(d<span class="sc">$</span>metadata<span class="sc">$</span>Source)[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>)])</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>metadata<span class="sc">$</span>Source<span class="ot">&lt;-</span><span class="fu">fct_relevel</span>(d<span class="sc">$</span>metadata<span class="sc">$</span>Source, <span class="st">"faecal"</span>, <span class="at">after =</span> <span class="dv">5</span>)</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="co"># d$metadata$Day&lt;- recode_factor(d$metadata$Day,</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                                `1` = "Day 1", `3` = "Day 3",`7` = "Day 7",`14` = "Day 14",`21` = "Day 21")</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>d<span class="sc">$</span>metadata<span class="sc">$</span>treat<span class="ot">&lt;-</span> <span class="fu">factor</span>(d<span class="sc">$</span>metadata<span class="sc">$</span>treat,</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>                        <span class="at">levels =</span><span class="fu">unique</span>(d<span class="sc">$</span>metadata<span class="sc">$</span>treat)[<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>)])</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">amp_heatmap</span>(</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> d,</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">group_by =</span> <span class="st">"treat"</span>,</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_by =</span> <span class="st">"Source"</span>,</span>
+<span id="cb31-16"><a href="#cb31-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">tax_aggregate =</span> <span class="st">"Phylum"</span>,</span>
+<span id="cb31-17"><a href="#cb31-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">tax_show =</span> <span class="dv">8</span>,</span>
+<span id="cb31-18"><a href="#cb31-18" aria-hidden="true" tabindex="-1"></a>  <span class="at">showRemainingTaxa =</span><span class="cn">TRUE</span>,</span>
+<span id="cb31-19"><a href="#cb31-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot_values_size=4,</span></span>
+<span id="cb31-20"><a href="#cb31-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">round =</span> <span class="dv">3</span>)</span>
+<span id="cb31-21"><a href="#cb31-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-22"><a href="#cb31-22" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">amp_heatmap</span>(</span>
+<span id="cb31-23"><a href="#cb31-23" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> d,</span>
+<span id="cb31-24"><a href="#cb31-24" aria-hidden="true" tabindex="-1"></a>  <span class="at">group_by =</span> <span class="st">"treat"</span>,</span>
+<span id="cb31-25"><a href="#cb31-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">facet_by =</span> <span class="st">"Source"</span>,</span>
+<span id="cb31-26"><a href="#cb31-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">tax_aggregate =</span> <span class="st">"Genus"</span>,<span class="at">tax_show =</span> <span class="dv">20</span>,<span class="at">showRemainingTaxa =</span><span class="cn">TRUE</span>,</span>
+<span id="cb31-27"><a href="#cb31-27" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plot_values_size=4</span></span>
+<span id="cb31-28"><a href="#cb31-28" aria-hidden="true" tabindex="-1"></a>  <span class="co"># tax_empty="OTU"</span></span>
+<span id="cb31-29"><a href="#cb31-29" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="relative-abundance" class="level3">
+<h3 class="anchored" data-anchor-id="relative-abundance">Relative abundance</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># showtext_auto()</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">showtext_auto</span>()</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>p <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"Phylum level heatmap - Grouped by source"</span>) <span class="sc">+</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>        <span class="co"># plot.title = element_blank(),</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">size=</span><span class="dv">20</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span> ),</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>),</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position=</span><span class="st">"right"</span>,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># panel.spacing = unit(0.05,"lines"),</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.border =</span> <span class="fu">element_rect</span>(<span class="at">color =</span> <span class="st">"black"</span>,<span class="at">fill =</span> <span class="cn">NA</span>),</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>,<span class="at">size=</span><span class="dv">20</span>),</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(.<span class="dv">01</span>,.<span class="dv">01</span>,.<span class="dv">01</span>,.<span class="dv">01</span>), <span class="st">"cm"</span>),</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">18</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/plot-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>q<span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">"Genus level heatmap - Grouped by source"</span>) <span class="sc">+</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme_ipsum_rc(panel_spacing = grid::unit(0.05, "lines"))+</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># plot.title = element_blank(),</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">90</span>, <span class="at">size=</span><span class="dv">20</span>, <span class="at">vjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span> ),</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">20</span>, <span class="at">face =</span> <span class="st">"italic"</span>),</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position=</span><span class="st">"right"</span>,</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># panel.spacing = unit(0.05,"lines"),</span></span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">panel.border =</span> <span class="fu">element_rect</span>(<span class="at">color =</span> <span class="st">"black"</span>,<span class="at">fill =</span> <span class="cn">NA</span>),</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">hjust =</span> <span class="fl">0.5</span>,<span class="at">size=</span><span class="dv">20</span>),</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(.<span class="dv">01</span>,.<span class="dv">01</span>,.<span class="dv">01</span>,.<span class="dv">01</span>), <span class="st">"cm"</span>),</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">18</span>)</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>        )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Transformation introduced infinite values in discrete y-axis</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="alpha-diversity" class="level2">
+<h2 class="anchored" data-anchor-id="alpha-diversity">Alpha Diversity</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="do">##estimate alpha diversity measures</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>alpha_meas <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Observed"</span>, <span class="st">"Shannon"</span>, <span class="st">"InvSimpson"</span>)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>alpha.diversity <span class="ot">&lt;-</span> <span class="fu">estimate_richness</span>(allday1, <span class="at">measures =</span> alpha_meas)</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="do">##fixed factors</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>my_cols<span class="ot">=</span><span class="fu">c</span>(<span class="st">"Source"</span>,<span class="st">"sow"</span>, <span class="st">"pen"</span>, <span class="st">"batch"</span>, <span class="st">"Coli"</span>,<span class="st">"treat"</span>,<span class="st">"PigID"</span>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>meta <span class="ot">&lt;-</span> <span class="fu">sample_data</span>(allday1)</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>alpha.diversity2 <span class="ot">&lt;-</span> <span class="fu">cbind</span>(alpha.diversity, meta[,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">11</span>,<span class="dv">13</span>)])</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>alpha.diversity2[<span class="fu">c</span>(my_cols)]<span class="ot">&lt;-</span> <span class="fu">lapply</span>(alpha.diversity2[my_cols], factor)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>alpha.diversity2<span class="sc">$</span>Source<span class="ot">&lt;-</span><span class="fu">fct_relevel</span>(alpha.diversity2<span class="sc">$</span>Source, <span class="st">"faecal"</span>, <span class="at">after =</span> <span class="dv">6</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>alpha.diversity2<span class="sc">$</span>treat<span class="ot">=</span><span class="fu">factor</span>(alpha.diversity2<span class="sc">$</span>treat,<span class="at">levels=</span><span class="fu">c</span>(<span class="st">"NC"</span>,<span class="st">"PC"</span>,<span class="st">"GA"</span>,<span class="st">"GB"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>alpha.diversity2<span class="ot">=</span>alpha.diversity2[<span class="fu">which</span>(alpha.diversity2<span class="sc">$</span>Source<span class="sc">!=</span> <span class="fu">c</span>(<span class="st">"faecal"</span>)),]</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>alpha.diversity2<span class="sc">$</span>Source<span class="ot">&lt;-</span><span class="fu">factor</span>(alpha.diversity2<span class="sc">$</span>Source,<span class="at">levels =</span><span class="fu">c</span>( <span class="st">"Sto"</span>,<span class="st">"Si2"</span>,<span class="st">"Si3"</span>,<span class="st">"Cae5"</span>,<span class="st">"Co2"</span>))</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>alpha.diversity2<span class="sc">$</span>PigID<span class="ot">&lt;-</span> <span class="fu">factor</span>(alpha.diversity2<span class="sc">$</span>PigID,<span class="at">levels =</span><span class="fu">unique</span>(alpha.diversity2<span class="sc">$</span>PigID))</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>fit_oB <span class="ot">&lt;-</span>alpha.diversity2 <span class="sc">%&gt;%</span> </span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>          <span class="fu">glmmTMB</span>(Observed  <span class="sc">~</span>  treat  <span class="sc">+</span> Source <span class="sc">+</span> treat<span class="sc">:</span>Source <span class="sc">+</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>sow)<span class="sc">+</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>batch),</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>                 <span class="co"># (1| PigID) ,</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> .,</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>                 <span class="co"># family = nbinom2(),</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>                 <span class="at">na.action =</span> na.exclude</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_oB)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: gaussian  ( identity )
+Formula:          
+Observed ~ treat + Source + treat:Source + (1 | sow) + (1 | batch)
+Data: .
+
+     AIC      BIC   logLik deviance df.resid 
+  1805.3   1874.5   -879.6   1759.3      127 
+
+Random effects:
+
+Conditional model:
+ Groups   Name        Variance        Std.Dev.  
+ sow      (Intercept) 1929.2083412735 43.9227543
+ batch    (Intercept)    0.0000001042  0.0003229
+ Residual             6575.6589020670 81.0904366
+Number of obs: 150, groups:  sow, 8; batch, 2
+
+Dispersion estimate for gaussian family (sigma^2): 6.58e+03 
+
+Conditional model:
+                   Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)         502.456     31.224  16.092   &lt;2e-16 ***
+treatPC              10.089     40.965   0.246   0.8055    
+treatGA             -51.334     40.968  -1.253   0.2102    
+treatGB              39.544     39.443   1.003   0.3161    
+SourceSi2            41.417     39.443   1.050   0.2937    
+SourceSi3            47.166     39.443   1.196   0.2318    
+SourceCae5           92.291     39.443   2.340   0.0193 *  
+SourceCo2            85.927     39.443   2.178   0.0294 *  
+treatPC:SourceSi2   -15.988     58.605  -0.273   0.7850    
+treatGA:SourceSi2   -69.701     58.605  -1.189   0.2343    
+treatGB:SourceSi2   -91.291     56.566  -1.614   0.1066    
+treatPC:SourceSi3    20.692     58.605   0.353   0.7240    
+treatGA:SourceSi3   -34.879     58.605  -0.595   0.5517    
+treatGB:SourceSi3   -56.790     56.566  -1.004   0.3154    
+treatPC:SourceCae5    4.567     58.605   0.078   0.9379    
+treatGA:SourceCae5  -14.433     58.605  -0.246   0.8055    
+treatGB:SourceCae5  -43.290     56.566  -0.765   0.4441    
+treatPC:SourceCo2   -23.929     58.605  -0.408   0.6830    
+treatGA:SourceCo2     2.928     58.605   0.050   0.9602    
+treatGB:SourceCo2   -59.591     57.655  -1.034   0.3013    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diagnostics</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(fit_oB)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Model has interaction terms. VIFs might be inflated.
+  You may check multicollinearity among predictors of a model without
+  interaction terms.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`check_outliers()` does not yet support models of class `glmmTMB`.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/glmm_alpha-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_performance</span>(fit_oB)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Indices of model performance
+
+AIC      |     AICc |      BIC | R2 (cond.) | R2 (marg.) |   RMSE |  Sigma
+--------------------------------------------------------------------------
+1805.283 | 1814.045 | 1874.528 |            |      0.264 | 79.243 | 81.090</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>simulationOutput <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> fit_oB)</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(simulationOutput,  <span class="at">asFactor =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/glmm_alpha-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotResiduals(simulationOutput, form = alpha.diversity2$treat)</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotResiduals</span>(simulationOutput, <span class="at">form =</span> alpha.diversity2<span class="sc">$</span>Source)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/glmm_alpha-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for plot</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="fu">joint_tests</span>(fit_oB)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> model term   df1 df2 F.ratio p.value
+ treat          3 127   7.305  0.0001
+ Source         4 127   6.318  0.0001
+ treat:Source  12 127   0.485  0.9207</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>plotme<span class="ot">&lt;-</span><span class="fu">ggpredict</span>(fit_oB ,<span class="at">terms=</span><span class="fu">c</span>(<span class="st">"Source"</span>,<span class="st">"treat"</span>))</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>fit_oB_PLOT<span class="ot">=</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(plotme, <span class="at">add.data =</span> T, <span class="at">dodge=</span>.<span class="dv">5</span>)</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_oB, <span class="sc">~</span> treat<span class="sc">|</span>Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Source = Sto:
+ treat emmean   SE  df lower.CL upper.CL
+ NC       502 31.2 127      441      564
+ PC       513 34.5 127      444      581
+ GA       451 34.5 127      383      519
+ GB       542 32.6 127      477      607
+
+Source = Si2:
+ treat emmean   SE  df lower.CL upper.CL
+ NC       544 32.6 127      479      608
+ PC       538 34.5 127      470      606
+ GA       423 34.5 127      355      491
+ GB       492 32.6 127      428      557
+
+Source = Si3:
+ treat emmean   SE  df lower.CL upper.CL
+ NC       550 32.6 127      485      614
+ PC       580 34.5 127      512      649
+ GA       463 34.5 127      395      532
+ GB       532 32.6 127      468      597
+
+Source = Cae5:
+ treat emmean   SE  df lower.CL upper.CL
+ NC       595 32.6 127      530      659
+ PC       609 34.5 127      541      678
+ GA       529 34.5 127      461      597
+ GB       591 32.6 127      526      656
+
+Source = Co2:
+ treat emmean   SE  df lower.CL upper.CL
+ NC       588 32.6 127      524      653
+ PC       575 34.5 127      506      643
+ GA       540 34.5 127      472      608
+ GB       568 34.4 127      500      636
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_oB,pairwise <span class="sc">~</span> treat, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ treat emmean   SE  df lower.CL upper.CL
+ NC       556 20.1 127      516      595
+ PC       563 20.9 127      522      604
+ GA       481 20.9 127      440      523
+ GB       545 20.3 127      505      585
+
+Results are averaged over the levels of: Source 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast estimate   SE  df t.ratio p.value
+ NC - PC     -7.16 18.8 127  -0.380  0.9813
+ NC - GA     74.55 18.9 127   3.953  0.0007
+ NC - GB     10.65 18.2 127   0.586  0.9361
+ PC - GA     81.71 19.8 127   4.131  0.0004
+ PC - GB     17.81 19.1 127   0.933  0.7871
+ GA - GB    -63.90 19.1 127  -3.346  0.0059
+
+Results are averaged over the levels of: Source 
+P value adjustment: tukey method for comparing a family of 4 estimates </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_oB,pairwise <span class="sc">~</span> Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ Source emmean   SE  df lower.CL upper.CL
+ Sto       502 21.4 127      460      544
+ Si2       499 21.5 127      457      542
+ Si3       531 21.5 127      489      574
+ Cae5      581 21.5 127      538      624
+ Co2       568 21.7 127      525      611
+
+Results are averaged over the levels of: treat 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast   estimate   SE  df t.ratio p.value
+ Sto - Si2      2.83 20.9 127   0.136  0.9999
+ Sto - Si3    -29.42 20.9 127  -1.411  0.6218
+ Sto - Cae5   -79.00 20.9 127  -3.789  0.0021
+ Sto - Co2    -65.78 21.0 127  -3.127  0.0183
+ Si2 - Si3    -32.25 21.0 127  -1.537  0.5406
+ Si2 - Cae5   -81.83 21.0 127  -3.900  0.0014
+ Si2 - Co2    -68.61 21.2 127  -3.241  0.0130
+ Si3 - Cae5   -49.58 21.0 127  -2.363  0.1325
+ Si3 - Co2    -36.36 21.2 127  -1.718  0.4269
+ Cae5 - Co2    13.22 21.2 127   0.625  0.9709
+
+Results are averaged over the levels of: treat 
+P value adjustment: tukey method for comparing a family of 5 estimates </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># cld(emmeans(fit_oB,pairwise~Source|treat, lmer.df = "satterthwaite"),Letters = letters, adjust = "BH")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>fit_S <span class="ot">&lt;-</span>alpha.diversity2 <span class="sc">%&gt;%</span> </span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">glmmTMB</span>(Shannon  <span class="sc">~</span>  treat  <span class="sc">+</span> Source <span class="sc">+</span> treat<span class="sc">:</span>Source <span class="sc">+</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>sow)<span class="sc">+</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>batch),</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>                 <span class="co"># (1| PigID) ,</span></span>
+<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> .,</span>
+<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>                 <span class="co"># family = nbinom2(),</span></span>
+<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">na.action =</span> na.exclude</span>
+<span id="cb57-9"><a href="#cb57-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb57-10"><a href="#cb57-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb57-11"><a href="#cb57-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_S)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: gaussian  ( identity )
+Formula:          
+Shannon ~ treat + Source + treat:Source + (1 | sow) + (1 | batch)
+Data: .
+
+     AIC      BIC   logLik deviance df.resid 
+   296.0    365.3   -125.0    250.0      127 
+
+Random effects:
+
+Conditional model:
+ Groups   Name        Variance        Std.Dev.  
+ sow      (Intercept) 0.0652705151463 0.25548095
+ batch    (Intercept) 0.0000000002253 0.00001501
+ Residual             0.2836918498666 0.53262731
+Number of obs: 150, groups:  sow, 8; batch, 2
+
+Dispersion estimate for gaussian family (sigma^2): 0.284 
+
+Conditional model:
+                   Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)         3.74130    0.19953  18.751  &lt; 2e-16 ***
+treatPC             0.14327    0.26905   0.532  0.59438    
+treatGA            -0.58162    0.26906  -2.162  0.03064 *  
+treatGB             0.02501    0.25906   0.097  0.92310    
+SourceSi2          -0.17932    0.25906  -0.692  0.48881    
+SourceSi3           0.39144    0.25906   1.511  0.13079    
+SourceCae5          0.71652    0.25906   2.766  0.00568 ** 
+SourceCo2           0.55191    0.25906   2.130  0.03314 *  
+treatPC:SourceSi2  -0.12592    0.38493  -0.327  0.74358    
+treatGA:SourceSi2  -0.02239    0.38493  -0.058  0.95362    
+treatGB:SourceSi2  -0.40673    0.37153  -1.095  0.27363    
+treatPC:SourceSi3  -0.22816    0.38493  -0.593  0.55336    
+treatGA:SourceSi3   0.10440    0.38493   0.271  0.78622    
+treatGB:SourceSi3  -0.20752    0.37153  -0.559  0.57647    
+treatPC:SourceCae5 -0.07422    0.38493  -0.193  0.84711    
+treatGA:SourceCae5  0.47663    0.38493   1.238  0.21563    
+treatGB:SourceCae5  0.04089    0.37153   0.110  0.91237    
+treatPC:SourceCo2  -0.16973    0.38493  -0.441  0.65925    
+treatGA:SourceCo2   0.54980    0.38493   1.428  0.15320    
+treatGB:SourceCo2   0.07002    0.37865   0.185  0.85330    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diagnostics</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(fit_S)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Model has interaction terms. VIFs might be inflated.
+  You may check multicollinearity among predictors of a model without
+  interaction terms.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`check_outliers()` does not yet support models of class `glmmTMB`.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_performance</span>(fit_S)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Indices of model performance
+
+AIC     |    AICc |     BIC | R2 (cond.) | R2 (marg.) |  RMSE | Sigma
+---------------------------------------------------------------------
+296.024 | 304.786 | 365.269 |            |      0.428 | 0.521 | 0.533</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>simulationOutput <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(<span class="at">fittedModel =</span> fit_S)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(simulationOutput,  <span class="at">asFactor =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotResiduals(simulationOutput, form = alpha.diversity2$treat)</span></span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotResiduals</span>(simulationOutput, <span class="at">form =</span> alpha.diversity2<span class="sc">$</span>Source)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-3-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for plot</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="fu">joint_tests</span>(fit_S)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> model term   df1 df2 F.ratio p.value
+ treat          3 127   3.790  0.0121
+ Source         4 127  23.177  &lt;.0001
+ treat:Source  12 127   0.614  0.8269</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1" aria-hidden="true" tabindex="-1"></a>plotme<span class="ot">&lt;-</span><span class="fu">ggpredict</span>(fit_S ,<span class="at">terms=</span><span class="fu">c</span>(<span class="st">"Source"</span>,<span class="st">"treat"</span>))</span>
+<span id="cb69-2"><a href="#cb69-2" aria-hidden="true" tabindex="-1"></a>fit_S_plot<span class="ot">=</span></span>
+<span id="cb69-3"><a href="#cb69-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(plotme, <span class="at">add.data =</span> T, <span class="at">dodge=</span>.<span class="dv">5</span>)</span>
+<span id="cb69-4"><a href="#cb69-4" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_S, <span class="sc">~</span> treat<span class="sc">|</span>Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Source = Sto:
+ treat emmean    SE  df lower.CL upper.CL
+ NC      3.74 0.200 127     3.35     4.14
+ PC      3.88 0.221 127     3.45     4.32
+ GA      3.16 0.221 127     2.72     3.60
+ GB      3.77 0.209 127     3.35     4.18
+
+Source = Si2:
+ treat emmean    SE  df lower.CL upper.CL
+ NC      3.56 0.209 127     3.15     3.98
+ PC      3.58 0.221 127     3.14     4.02
+ GA      2.96 0.221 127     2.52     3.40
+ GB      3.18 0.209 127     2.77     3.59
+
+Source = Si3:
+ treat emmean    SE  df lower.CL upper.CL
+ NC      4.13 0.209 127     3.72     4.55
+ PC      4.05 0.221 127     3.61     4.49
+ GA      3.66 0.221 127     3.22     4.09
+ GB      3.95 0.209 127     3.54     4.36
+
+Source = Cae5:
+ treat emmean    SE  df lower.CL upper.CL
+ NC      4.46 0.209 127     4.04     4.87
+ PC      4.53 0.221 127     4.09     4.96
+ GA      4.35 0.221 127     3.91     4.79
+ GB      4.52 0.209 127     4.11     4.94
+
+Source = Co2:
+ treat emmean    SE  df lower.CL upper.CL
+ NC      4.29 0.209 127     3.88     4.71
+ PC      4.27 0.221 127     3.83     4.70
+ GA      4.26 0.221 127     3.82     4.70
+ GB      4.39 0.221 127     3.95     4.83
+
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_S,pairwise <span class="sc">~</span> treat, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ treat emmean    SE  df lower.CL upper.CL
+ NC      4.04 0.123 127     3.79     4.28
+ PC      4.06 0.129 127     3.81     4.32
+ GA      3.68 0.129 127     3.42     3.93
+ GB      3.96 0.124 127     3.72     4.21
+
+Results are averaged over the levels of: Source 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast estimate    SE  df t.ratio p.value
+ NC - PC   -0.0237 0.124 127  -0.191  0.9975
+ NC - GA    0.3599 0.124 127   2.907  0.0221
+ NC - GB    0.0757 0.119 127   0.634  0.9209
+ PC - GA    0.3836 0.130 127   2.957  0.0192
+ PC - GB    0.0993 0.125 127   0.792  0.8578
+ GA - GB   -0.2843 0.125 127  -2.267  0.1112
+
+Results are averaged over the levels of: Source 
+P value adjustment: tukey method for comparing a family of 4 estimates </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_S,pairwise <span class="sc">~</span> Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ Source emmean    SE  df lower.CL upper.CL
+ Sto      3.64 0.132 127     3.38     3.90
+ Si2      3.32 0.133 127     3.06     3.58
+ Si3      3.95 0.133 127     3.68     4.21
+ Cae5     4.47 0.133 127     4.20     4.73
+ Co2      4.30 0.134 127     4.04     4.57
+
+Results are averaged over the levels of: treat 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast   estimate    SE  df t.ratio p.value
+ Sto - Si2     0.318 0.137 127   2.322  0.1446
+ Sto - Si3    -0.309 0.137 127  -2.253  0.1672
+ Sto - Cae5   -0.827 0.137 127  -6.041  &lt;.0001
+ Sto - Co2    -0.664 0.138 127  -4.809  &lt;.0001
+ Si2 - Si3    -0.627 0.138 127  -4.547  0.0001
+ Si2 - Cae5   -1.145 0.138 127  -8.310  &lt;.0001
+ Si2 - Co2    -0.983 0.139 127  -7.067  &lt;.0001
+ Si3 - Cae5   -0.519 0.138 127  -3.763  0.0023
+ Si3 - Co2    -0.356 0.139 127  -2.559  0.0843
+ Cae5 - Co2    0.163 0.139 127   1.172  0.7674
+
+Results are averaged over the levels of: treat 
+P value adjustment: tukey method for comparing a family of 5 estimates </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb77"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>fit_I <span class="ot">&lt;-</span>alpha.diversity2 <span class="sc">%&gt;%</span> </span>
+<span id="cb77-2"><a href="#cb77-2" aria-hidden="true" tabindex="-1"></a>          <span class="fu">glmmTMB</span>(InvSimpson  <span class="sc">~</span>  treat  <span class="sc">+</span> Source <span class="sc">+</span> treat<span class="sc">:</span>Source <span class="sc">+</span></span>
+<span id="cb77-3"><a href="#cb77-3" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>sow)<span class="sc">+</span></span>
+<span id="cb77-4"><a href="#cb77-4" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span>batch)<span class="sc">+</span></span>
+<span id="cb77-5"><a href="#cb77-5" aria-hidden="true" tabindex="-1"></a>                 (<span class="dv">1</span><span class="sc">|</span> PigID),</span>
+<span id="cb77-6"><a href="#cb77-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">data =</span> .,</span>
+<span id="cb77-7"><a href="#cb77-7" aria-hidden="true" tabindex="-1"></a>                 <span class="at">family =</span> <span class="fu">Gamma</span>(<span class="at">link =</span> <span class="st">"log"</span>),</span>
+<span id="cb77-8"><a href="#cb77-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">na.action =</span> na.exclude</span>
+<span id="cb77-9"><a href="#cb77-9" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb77-10"><a href="#cb77-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb77-11"><a href="#cb77-11" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_I)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> Family: Gamma  ( log )
+Formula:          
+InvSimpson ~ treat + Source + treat:Source + (1 | sow) + (1 |  
+    batch) + (1 | PigID)
+Data: .
+
+     AIC      BIC   logLik deviance df.resid 
+  1024.5   1096.8   -488.3    976.5      126 
+
+Random effects:
+
+Conditional model:
+ Groups Name        Variance       Std.Dev.  
+ sow    (Intercept) 0.101125979596 0.31800311
+ batch  (Intercept) 0.000000002244 0.00004737
+ PigID  (Intercept) 0.051217170880 0.22631211
+Number of obs: 150, groups:  sow, 8; batch, 2; PigID, 30
+
+Dispersion estimate for Gamma family (sigma^2): 0.248 
+
+Conditional model:
+                   Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)         2.50245    0.22015  11.367   &lt;2e-16 ***
+treatPC             0.04608    0.28244   0.163   0.8704    
+treatGA            -0.67546    0.28225  -2.393   0.0167 *  
+treatGB            -0.39053    0.27168  -1.437   0.1506    
+SourceSi2          -0.48311    0.24386  -1.981   0.0476 *  
+SourceSi3           0.36403    0.25571   1.424   0.1546    
+SourceCae5          0.59946    0.25229   2.376   0.0175 *  
+SourceCo2           0.26057    0.24436   1.066   0.2863    
+treatPC:SourceSi2   0.01084    0.36191   0.030   0.9761    
+treatGA:SourceSi2   0.29161    0.36142   0.807   0.4198    
+treatGB:SourceSi2   0.03823    0.34977   0.109   0.9130    
+treatPC:SourceSi3  -0.25318    0.37483  -0.675   0.4994    
+treatGA:SourceSi3   0.34105    0.37127   0.919   0.3583    
+treatGB:SourceSi3   0.08025    0.35965   0.223   0.8234    
+treatPC:SourceCae5 -0.08021    0.37005  -0.217   0.8284    
+treatGA:SourceCae5  0.65621    0.36808   1.783   0.0746 .  
+treatGB:SourceCae5  0.45003    0.35888   1.254   0.2098    
+treatPC:SourceCo2  -0.13595    0.36340  -0.374   0.7083    
+treatGA:SourceCo2   0.75733    0.36442   2.078   0.0377 *  
+treatGB:SourceCo2   0.60955    0.35636   1.710   0.0872 .  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb79"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1" aria-hidden="true" tabindex="-1"></a><span class="co">#diagnostics</span></span>
+<span id="cb79-2"><a href="#cb79-2" aria-hidden="true" tabindex="-1"></a><span class="fu">check_model</span>(fit_I)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Model has interaction terms. VIFs might be inflated.
+  You may check multicollinearity among predictors of a model without
+  interaction terms.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>`check_outliers()` does not yet support models of class `glmmTMB`.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb82"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_performance</span>(fit_I)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Random effect variances not available. Returned R2 does not account for random effects.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Indices of model performance
+
+AIC      |     AICc |      BIC | R2 (cond.) | R2 (marg.) |  RMSE | Sigma
+------------------------------------------------------------------------
+1024.508 | 1034.108 | 1096.763 |            |      0.477 | 9.718 | 0.498</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb85"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a>simulationOutput <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(fit_I)</span>
+<span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(simulationOutput,  <span class="at">asFactor =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-4-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb86"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plotResiduals(simulationOutput, form = alpha.diversity2$treat)</span></span>
+<span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotResiduals</span>(simulationOutput, <span class="at">form =</span> alpha.diversity2<span class="sc">$</span>Source)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="workflow_II_files/figure-html/unnamed-chunk-4-3.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb87"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1" aria-hidden="true" tabindex="-1"></a><span class="co">#for plot</span></span>
+<span id="cb87-2"><a href="#cb87-2" aria-hidden="true" tabindex="-1"></a><span class="fu">joint_tests</span>(fit_I)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> model term   df1 df2 F.ratio   Chisq p.value
+ treat          3 Inf   0.999   2.997  0.3923
+ Source         4 Inf  27.959 111.836  &lt;.0001
+ treat:Source  12 Inf   1.004  12.048  0.4415</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb89"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>plotme<span class="ot">&lt;-</span><span class="fu">ggpredict</span>(fit_I ,<span class="at">terms=</span><span class="fu">c</span>(<span class="st">"Source"</span>,<span class="st">"treat"</span>))</span>
+<span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>I_plot<span class="ot">=</span></span>
+<span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(plotme, <span class="at">add.data =</span> T, <span class="at">dodge=</span>.<span class="dv">5</span>)</span>
+<span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_I, <span class="sc">~</span> treat<span class="sc">|</span>Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Source = Sto:
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      2.50 0.220 Inf      2.07      2.93
+ PC      2.55 0.241 Inf      2.08      3.02
+ GA      1.83 0.238 Inf      1.36      2.29
+ GB      2.11 0.225 Inf      1.67      2.55
+
+Source = Si2:
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      2.02 0.226 Inf      1.58      2.46
+ PC      2.08 0.238 Inf      1.61      2.54
+ GA      1.64 0.237 Inf      1.17      2.10
+ GB      1.67 0.224 Inf      1.23      2.11
+
+Source = Si3:
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      2.87 0.231 Inf      2.41      3.32
+ PC      2.66 0.240 Inf      2.19      3.13
+ GA      2.53 0.240 Inf      2.06      3.00
+ GB      2.56 0.226 Inf      2.11      3.00
+
+Source = Cae5:
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      3.10 0.227 Inf      2.66      3.55
+ PC      3.07 0.238 Inf      2.60      3.53
+ GA      3.08 0.238 Inf      2.62      3.55
+ GB      3.16 0.226 Inf      2.72      3.60
+
+Source = Co2:
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      2.76 0.226 Inf      2.32      3.21
+ PC      2.67 0.238 Inf      2.21      3.14
+ GA      2.84 0.239 Inf      2.38      3.31
+ GB      2.98 0.236 Inf      2.52      3.44
+
+Results are given on the log (not the response) scale. 
+Confidence level used: 0.95 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb91"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_I,pairwise <span class="sc">~</span> treat, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ treat emmean    SE  df asymp.LCL asymp.UCL
+ NC      2.65 0.159 Inf      2.34      2.96
+ PC      2.61 0.167 Inf      2.28      2.93
+ GA      2.38 0.166 Inf      2.06      2.71
+ GB      2.50 0.160 Inf      2.18      2.81
+
+Results are averaged over the levels of: Source 
+Results are given on the log (not the response) scale. 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast estimate    SE  df z.ratio p.value
+ NC - PC    0.0456 0.167 Inf   0.274  0.9928
+ NC - GA    0.2662 0.167 Inf   1.598  0.3795
+ NC - GB    0.1549 0.160 Inf   0.970  0.7668
+ PC - GA    0.2206 0.174 Inf   1.268  0.5837
+ PC - GB    0.1093 0.167 Inf   0.655  0.9139
+ GA - GB   -0.1113 0.167 Inf  -0.667  0.9096
+
+Results are averaged over the levels of: Source 
+Results are given on the log (not the response) scale. 
+P value adjustment: tukey method for comparing a family of 4 estimates </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb94"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu">emmeans</span>(fit_I,pairwise <span class="sc">~</span> Source, <span class="at">lmer.df =</span> <span class="st">"satterthwaite"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>NOTE: Results may be misleading due to involvement in interactions</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$emmeans
+ Source emmean    SE  df asymp.LCL asymp.UCL
+ Sto      2.25 0.151 Inf      1.95      2.54
+ Si2      1.85 0.151 Inf      1.55      2.15
+ Si3      2.65 0.153 Inf      2.35      2.95
+ Cae5     3.10 0.152 Inf      2.81      3.40
+ Co2      2.82 0.153 Inf      2.52      3.11
+
+Results are averaged over the levels of: treat 
+Results are given on the log (not the response) scale. 
+Confidence level used: 0.95 
+
+$contrasts
+ contrast   estimate    SE  df z.ratio p.value
+ Sto - Si2     0.398 0.129 Inf   3.087  0.0173
+ Sto - Si3    -0.406 0.133 Inf  -3.058  0.0189
+ Sto - Cae5   -0.856 0.132 Inf  -6.502  &lt;.0001
+ Sto - Co2    -0.568 0.131 Inf  -4.342  0.0001
+ Si2 - Si3    -0.804 0.132 Inf  -6.088  &lt;.0001
+ Si2 - Cae5   -1.254 0.131 Inf  -9.582  &lt;.0001
+ Si2 - Co2    -0.966 0.132 Inf  -7.332  &lt;.0001
+ Si3 - Cae5   -0.450 0.131 Inf  -3.436  0.0053
+ Si3 - Co2    -0.162 0.135 Inf  -1.202  0.7501
+ Cae5 - Co2    0.288 0.133 Inf   2.164  0.1933
+
+Results are averaged over the levels of: treat 
+Results are given on the log (not the response) scale. 
+P value adjustment: tukey method for comparing a family of 5 estimates </code></pre>
+</div>
+</div>
+</section>
+<section id="my-alpha-plot" class="level2">
+<h2 class="anchored" data-anchor-id="my-alpha-plot">my alpha plot</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb97"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_oB_PLOT+</span></span>
+<span id="cb97-2"><a href="#cb97-2" aria-hidden="true" tabindex="-1"></a><span class="co"># fit_S_plot+</span></span>
+<span id="cb97-3"><a href="#cb97-3" aria-hidden="true" tabindex="-1"></a><span class="co"># I_plot</span></span>
+<span id="cb97-4"><a href="#cb97-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb97-5"><a href="#cb97-5" aria-hidden="true" tabindex="-1"></a>a<span class="ot">=</span></span>
+<span id="cb97-6"><a href="#cb97-6" aria-hidden="true" tabindex="-1"></a>  fit_oB_PLOT<span class="sc">+</span></span>
+<span id="cb97-7"><a href="#cb97-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> mypal)<span class="sc">+</span></span>
+<span id="cb97-8"><a href="#cb97-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Gastrointestinal Segment"</span>)<span class="sc">+</span></span>
+<span id="cb97-9"><a href="#cb97-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_blank</span>(),<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb97-10"><a href="#cb97-10" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.y =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb97-11"><a href="#cb97-11" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.x =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb97-12"><a href="#cb97-12" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>)),</span>
+<span id="cb97-13"><a href="#cb97-13" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>))</span>
+<span id="cb97-14"><a href="#cb97-14" aria-hidden="true" tabindex="-1"></a>            <span class="co"># legend.margin=margin(t=-5)</span></span>
+<span id="cb97-15"><a href="#cb97-15" aria-hidden="true" tabindex="-1"></a>            )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for colour is already present.
+Adding another scale for colour, which will replace the existing scale.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb99"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1" aria-hidden="true" tabindex="-1"></a>b<span class="ot">=</span>fit_S_plot<span class="sc">+</span></span>
+<span id="cb99-2"><a href="#cb99-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> mypal)<span class="sc">+</span></span>
+<span id="cb99-3"><a href="#cb99-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Gastrointestinal Segment"</span>)<span class="sc">+</span></span>
+<span id="cb99-4"><a href="#cb99-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_blank</span>(),<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb99-5"><a href="#cb99-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.y =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb99-6"><a href="#cb99-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.x =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb99-7"><a href="#cb99-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>)),</span>
+<span id="cb99-8"><a href="#cb99-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>))</span>
+<span id="cb99-9"><a href="#cb99-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># legend.margin=margin(t=-5)</span></span>
+<span id="cb99-10"><a href="#cb99-10" aria-hidden="true" tabindex="-1"></a>            )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for colour is already present.
+Adding another scale for colour, which will replace the existing scale.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb101"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1" aria-hidden="true" tabindex="-1"></a>c<span class="ot">=</span>I_plot<span class="sc">+</span></span>
+<span id="cb101-2"><a href="#cb101-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_colour_manual</span>(<span class="at">values =</span> mypal)<span class="sc">+</span></span>
+<span id="cb101-3"><a href="#cb101-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Gastrointestinal Segment"</span>)<span class="sc">+</span></span>
+<span id="cb101-4"><a href="#cb101-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_blank</span>(),<span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb101-5"><a href="#cb101-5" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.y =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb101-6"><a href="#cb101-6" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.ticks.length.x =</span> <span class="fu">unit</span>(.<span class="dv">10</span>, <span class="st">"cm"</span>),</span>
+<span id="cb101-7"><a href="#cb101-7" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">r=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>)),</span>
+<span id="cb101-8"><a href="#cb101-8" aria-hidden="true" tabindex="-1"></a>          <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">margin =</span> <span class="fu">margin</span>(<span class="at">t=</span><span class="fl">0.125</span>, <span class="at">unit =</span> <span class="st">"cm"</span>))</span>
+<span id="cb101-9"><a href="#cb101-9" aria-hidden="true" tabindex="-1"></a>            <span class="co"># legend.margin=margin(t=-5)</span></span>
+<span id="cb101-10"><a href="#cb101-10" aria-hidden="true" tabindex="-1"></a>            )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for colour is already present.
+Adding another scale for colour, which will replace the existing scale.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb103"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1" aria-hidden="true" tabindex="-1"></a>alpha_plot<span class="ot">=</span>a<span class="sc">+</span>b<span class="sc">+</span>c<span class="sc">+</span><span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">'collect'</span></span>
+<span id="cb103-2"><a href="#cb103-2" aria-hidden="true" tabindex="-1"></a>                               <span class="co"># widths = unit(rep(4,3), c(rep("cm",3))),</span></span>
+<span id="cb103-3"><a href="#cb103-3" aria-hidden="true" tabindex="-1"></a>                               <span class="co"># heights = unit(rep(8,3), c(rep("cm",3)))</span></span>
+<span id="cb103-4"><a href="#cb103-4" aria-hidden="true" tabindex="-1"></a>                               <span class="co"># widths = rep(7,3),</span></span>
+<span id="cb103-5"><a href="#cb103-5" aria-hidden="true" tabindex="-1"></a>                               <span class="co"># heights = rep(10,3)</span></span>
+<span id="cb103-6"><a href="#cb103-6" aria-hidden="true" tabindex="-1"></a>                               )<span class="sc">&amp;</span></span>
+<span id="cb103-7"><a href="#cb103-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb103-8"><a href="#cb103-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">legend.position =</span> <span class="st">"top"</span>,</span>
+<span id="cb103-9"><a href="#cb103-9" aria-hidden="true" tabindex="-1"></a>     <span class="co"># legend.margin=margin(t=-5),</span></span>
+<span id="cb103-10"><a href="#cb103-10" aria-hidden="true" tabindex="-1"></a>     <span class="co"># text=element_text(size=42),</span></span>
+<span id="cb103-11"><a href="#cb103-11" aria-hidden="true" tabindex="-1"></a>     <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb103-12"><a href="#cb103-12" aria-hidden="true" tabindex="-1"></a>     <span class="at">plot.margin =</span> <span class="fu">unit</span>(<span class="fu">c</span>(.<span class="dv">1</span>,.<span class="dv">1</span>,.<span class="dv">1</span>,.<span class="dv">1</span>), <span class="st">"cm"</span>)</span>
+<span id="cb103-13"><a href="#cb103-13" aria-hidden="true" tabindex="-1"></a>     )</span>
+<span id="cb103-14"><a href="#cb103-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb103-15"><a href="#cb103-15" aria-hidden="true" tabindex="-1"></a><span class="co"># ggsave("alpha.png",plot=alpha_plot ,path = "myplots/", </span></span>
+<span id="cb103-16"><a href="#cb103-16" aria-hidden="true" tabindex="-1"></a><span class="co">#        height = 8, width = 18, </span></span>
+<span id="cb103-17"><a href="#cb103-17" aria-hidden="true" tabindex="-1"></a><span class="co">#        scale=1.2,</span></span>
+<span id="cb103-18"><a href="#cb103-18" aria-hidden="true" tabindex="-1"></a><span class="co">#        units = "cm", dpi = "retina")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The <code>echo: false</code> option disables the printing of code (only output is displayed).</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
